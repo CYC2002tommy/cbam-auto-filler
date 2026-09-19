@@ -18,7 +18,7 @@ import type { FormData, A_InstData, B_EmInst, C_EmissionsEnergy, D_Processes, E_
 import { exportDeclaration } from './utils/exportDeclaration';
 import { TEMPLATE_VERSION } from './utils/xlsxWriter';
 import { PrefsProvider, usePrefs, useT } from './ui/prefs';
-import { loadDraft, saveDraft, parseProject, downloadProject } from './ui/project';
+import { loadDraft, saveDraft, parseProject, saveProjectFile, openProjectFile } from './ui/project';
 import { ToastProvider, useToast } from './ui/toast';
 import { UndoContext } from './ui/undo';
 import Sidebar, { type NavGroup } from './ui/Sidebar';
@@ -142,6 +142,27 @@ const Shell: React.FC = () => {
         }
     };
 
+    const handleOpen = async () => {
+        if (!window.cbam?.openProject) { openInput.current?.click(); return; }
+        try {
+            const picked = await openProjectFile();
+            if (!picked) return;
+            setFormData(picked.data);
+            toast.show({ message: t(`已開啟 ${picked.name}`, `Opened ${picked.name}`), tone: 'success' });
+        } catch (e: any) {
+            toast.show({ message: e?.message ?? String(e), tone: 'error', duration: 9000 });
+        }
+    };
+
+    const handleSaveProject = async () => {
+        try {
+            const name = await saveProjectFile(formData, formData.a_instData.static.I20 as string);
+            if (name) toast.show({ message: t(`已儲存 ${name}`, `Saved ${name}`), tone: 'success' });
+        } catch (e: any) {
+            toast.show({ message: e?.message ?? String(e), tone: 'error', duration: 9000 });
+        }
+    };
+
     const select = (id: string) => {
         setActive(id as SectionId);
         contentRef.current?.scrollTo({ top: 0 });
@@ -153,7 +174,7 @@ const Shell: React.FC = () => {
             const filename = await exportDeclaration(formData, formData.a_instData.static.I20 as string);
             toast.show({ message: t(`已產生 ${filename}`, `Created ${filename}`), tone: 'success' });
         } catch (error: any) {
-            toast.show({ message: error?.message ?? String(error), tone: 'error', duration: 9000 });
+            if (error?.name !== 'ExportCancelled') toast.show({ message: error?.message ?? String(error), tone: 'error', duration: 9000 });
         } finally {
             setIsSaving(false);
         }
@@ -225,11 +246,11 @@ const Shell: React.FC = () => {
                         )}
                         <input ref={openInput} type="file" accept=".cbam,application/json" className="hidden"
                             onChange={e => { const f = e.target.files?.[0]; if (f) openProject(f); e.target.value = ''; }} />
-                        <button type="button" onClick={() => openInput.current?.click()}
+                        <button type="button" onClick={handleOpen}
                             className="pressable rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-900/5">
                             {t('開啟專案', 'Open')}
                         </button>
-                        <button type="button" onClick={() => { downloadProject(formData, formData.a_instData.static.I20 as string); toast.show({ message: t('專案檔已下載', 'Project file saved'), tone: 'success' }); }}
+                        <button type="button" onClick={handleSaveProject}
                             className="pressable rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-900/5">
                             {t('儲存專案', 'Save')}
                         </button>

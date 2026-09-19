@@ -1,13 +1,20 @@
 {
-  "name": "cbam-report-data-entry",
+  "name": "cbam-auto-filler",
+  "productName": "CBAM 申報助手",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "template:map": "python tools/gen_template_map.py --report",
+    "desktop": "electron .",
+    "dist": "vite build && electron-builder --publish never",
+    "dist:win": "vite build && electron-builder --win --publish never",
+    "dist:mac": "vite build && electron-builder --mac --publish never"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -23,8 +30,22 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
+  },
+  "build": {
+    "appId": "tw.edu.nchu.cbam.autofiller",
+    "productName": "CBAM Auto-Filler",
+    "directories": { "output": "release" },
+    "electronDist": "node_modules/electron/dist",
+    "files": ["dist/**", "electron/**", "package.json"],
+    "extraResources": [{ "from": "template", "to": "template", "filter": ["*.xlsx"] }],
+    "win": { "target": "nsis", "artifactName": "CBAM-Auto-Filler-${version}-setup.${ext}" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "perMachine": false },
+    "mac": { "target": "dmg", "category": "public.app-category.productivity", "artifactName": "CBAM-Auto-Filler-${version}.${ext}" },
+    "fileAssociations": [{ "ext": "cbam", "name": "CBAM project", "role": "Editor" }]
   }
 }

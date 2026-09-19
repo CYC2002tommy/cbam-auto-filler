@@ -57,6 +57,21 @@ export const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
 };
 
+/** Save the project: a native dialog on the desktop, a download in the browser. Returns the name saved, or null if cancelled. */
+export const saveProjectFile = async (data: FormData, installationName?: string): Promise<string | null> => {
+    const safe = (installationName || 'CBAM').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 40) || 'CBAM';
+    if (window.cbam?.saveProject) return window.cbam.saveProject(serialiseProject(data), `${safe}.cbam`);
+    downloadProject(data, installationName);
+    return `${safe}.cbam`;
+};
+
+/** Open a project: a native dialog on the desktop, otherwise the caller supplies a File. */
+export const openProjectFile = async (): Promise<{ name: string; data: FormData } | null> => {
+    if (!window.cbam?.openProject) return null;
+    const picked = await window.cbam.openProject();
+    return picked ? { name: picked.name, data: parseProject(picked.text) } : null;
+};
+
 export const downloadProject = (data: FormData, installationName?: string) => {
     const safe = (installationName || 'CBAM').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 40) || 'CBAM';
     const blob = new Blob([serialiseProject(data)], { type: 'application/json' });
