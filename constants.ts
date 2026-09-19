@@ -1,5 +1,7 @@
+import { listFor } from "./template/lists";
 
-export const E62_OPTIONS = ["Cement", "Cement clinker", "Calcined clays ", "Aluminous cement", "Iron or steel products", "Crude steel", "Direct reduced iron", "Pig iron", "Alloys (FeMn, FeCr, FeNi)", "Sintered Ore", "Hydrogen", "Ammonia", "Nitric acid", "Urea", "Mixed fertilisers", "Aluminium products", "Unwrought aluminium", "Electricity (export to EU)"];
+
+export const E62_OPTIONS = listFor("A_InstData", "E62");
 export const E83_BASE_OPTIONS = ["Only direct production", "n.a."];
 
 export const CATEGORIES_WITH_ROUTES = [
@@ -10,40 +12,8 @@ export const CATEGORIES_WITH_ROUTES = [
     "Unwrought aluminium"
 ];
 
-export const COUNTRY_CODES = [
-    "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AN", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", 
-    "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BL", "BM", "BN", "BO", "BQ", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", 
-    "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR", "CU", "CV", "CW", "CX", "CY", "CZ", 
-    "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "EU", "FI", "FJ", "FK", "FM", "FO", "FR", 
-    "GA", "GB", "GD", "GE", "GF", "GG", "GH", "GI", "GL", "GM", "GN", "GP", "GQ", "GR", "GS", "GT", "GU", "GW", "GY", 
-    "HK", "HM", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IM", "IN", "IO", "IQ", "IR", "IS", "IT", 
-    "JE", "JM", "JO", "JP", "KE", "KG", "KH", "KI", "KM", "KN", "KP", "KR", "KW", "KY", "KZ", 
-    "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MF", "MG", "MH", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT", "MU", "MV", "MW", "MX", "MY", "MZ", 
-    "NA", "NC", "NE", "NF", "NG", "NI", "NL", "NO", "NP", "NR", "NU", "NZ", "OM", "PA", 
-    "PE", "PF", "PG", "PH", "PK", "PL", "PM", "PN", "PR", "PS", "PT", "PW", "PY", "QA", "QP", 
-    "RE", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM", "SN", "SO", "SR", "SS", "ST", "SV", "SX", "SY", "SZ", 
-    "TC", "TD", "TF", "TG", "TH", "TJ", "TK", "TL", "TM", "TN", "TO", "TP", "TR", "TT", "TV", "TW", "TZ", 
-    "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", 
-    "XA", "XC", "XI", "XK", "XL", "XM", "XO", "XP", "XR", "XS", "XZ", "YE", "YT", "YU", "South Africa", "Zambia", "ZR", "ZW"
-];
-
-export const COUNTRY_NAMES = [
-    "Andorra", "United Arab Emirates", "Afghanistan", "Antigua and Barbuda", "Anguilla", "Albania", "Armenia", "Netherlands Antilles", "Angola", "Aruban Florin", "Argentina", "American Samoa", "Austria", "Australia", "Aruba", "ÅLAND ISLANDS", "Azerbaijan", 
-    "Bosnia and Herzegovina", "Barbados", "Bangladesh", "Belgium", "Burkina Faso", "Bulgaria", "Bahrain", "Burundi", "Benin", "Saint Barthélemy", "Bermuda", "Brunei Darussalam", "Bolivia, Plurinational State of", "Bonaire, Sint Eustatius and Saba", "Brazil", "Bahamas", "Bhutan", "Bouvet Island", "Botswana", "Belarus", "Belize", 
-    "Canada", "Cocos Islands (or Keeling Islands)", "Congo, Democratic Republic of", "Central African Republic", "Congo", "Switzerland", "Côte d'Ivoire", "Cook Islands", "Chile", "Cameroon", "China", "Colombia", "Costa Rica", "Cuba", "Cape Verde", "Curaçao", "Christmas Island", "Cyprus", "Czechia", 
-    "Germany", "Djibouti", "Denmark", "Dominica", "Dominican Republic", "Algeria", "Ecuador", "Estonia", "Egypt", "Western Sahara", "Eritrea", "Spain", "Ethiopia", "European Community", "Finland", "Fiji", "Falkland Islands", "Micronesia, Federated States of", "Faroe Islands", "France", 
-    "GA", "United Kingdom", "Grenada", "Georgia", "GF", "Guernsey", "Ghana", "Gibraltar", "Greenland", "Gambia", "Guinea", "Guadeloupe", "Equatorial Guinea", "Greece", "GS", "GT", "Guam", "Guinea-Bissau", "Guyana", 
-    "HK", "HM", "HN", "HR", "Haiti", "Hungary", "Indonesia", "Ireland", "Israel", "IM", "India", "IO", "Iraq", "Iran", "Iceland", "Italy", 
-    "JE", "Jamaica", "Jordan", "Japan", "Kenya", "KG", "Cambodia", "Kiribati", "Comoros", "St Kitts and Nevis", "KP", "KR", "Kuwait", "KY", "Kazakhstan", 
-    "LA", "Lebanon", "LC", "Liechtenstein", "Sri Lanka", "Liberia", "Lesotho", "Lithuania", "Luxembourg", "Latvia", "Libya", "Morocco", "Monaco", "Moldova", "Montenegro", "MF", "Madagascar", "MH", "North Macedonia", "Mali", "Myanmar", "Mongolia", "Macao", "MP", "MQ", "Mauritania", "MS", "Malta", "Mauritius", "Maldives", "Malawi", "Mexico", "Malaysia", "MZ", 
-    "NA", "NC", "NE", "NF", "NG", "NI", "NL", "Norway", "Nepal", "NR", "NU", "NZ", "OM", "Panama", 
-    "PE", "PF", "PG", "Philippines", "PK", "Poland", "PM", "PN", "PR", "PS", "PT", "PW", "PY", "QA", "QP", 
-    "RE", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM", "SN", "SO", "SR", "SS", "ST", "SV", "SX", "SY", "SZ", 
-    "TC", "TD", "TF", "TG", "TH", "TJ", "TK", "TL", "TM", "TN", "TO", "TP", "TR", "TT", "TV", "TW", "TZ", 
-    "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", 
-    "XA", "XC", "XI", "XK", "XL", "XM", "XO", "XP", "XR", "XS", "XZ", "YE", "YT", "YU", "South Africa", "Zambia", "ZR", "ZW"
-];
-
+export const COUNTRY_CODES = listFor("A_InstData", "F102");
+export const COUNTRY_NAMES = listFor("A_InstData", "I26");
 export const ROUTE_MAP: Record<string, string[]> = {
     "Pig iron": ["Blast furnace route", "Smelting reduction", "Other production routes", "Unknown production routes"],
     "Crude steel": ["Basic oxygen steelmaking", "Electric arc furnace", "Other production routes", "Unknown production routes"],
@@ -53,15 +23,15 @@ export const ROUTE_MAP: Record<string, string[]> = {
     "Electricity (export to EU)": ["All production routes"],
     "Default": ["All production routes", "Other production routes", "Unknown production routes", "n.a."]
 };
-export const D17_OPTIONS_METHOD = ["Combustion", "Process emissions", "Mass Balance"];
+export const D17_OPTIONS_METHOD = listFor("B_EmInst", "D17");
 export const D17_OPTIONS_E_TECH = ["Heavy fuel oil", "Raw meal for clinker", "Steel"];
-export const D17_OPTIONS_G_UNIT = ["t", "1000Nm3"];
-export const D17_OPTIONS_K_EF_UNIT = ["tCO2/TJ", "tCO2/t", "tCO2/1000Nm3"];
-export const D98_OPTIONS_PFC = ["Slope method", "Overvoltage method"];
-export const D113_E_OPTIONS = ["CO2", "N2O"];
-export const H40_OPTIONS = ["Mostly measurements & analyses", "Mostly measurements & national standard factors for e.g. the emission factor", "Mostly measurements & sector-specific standard factors for e.g. the emission factor", "Mostly measurements & international standard factors for e.g. the emission factor", "Mostly default values provided by the European Commission"];
-export const H41_OPTIONS = ["Unreasonable costs for more accurate monitoring", "Data gaps", "Other"];
-export const H42_OPTIONS = ["Third-party verification", "Internal audits", "Four eyes principle", "None"];
+export const D17_OPTIONS_G_UNIT = listFor("B_EmInst", "G17");
+export const D17_OPTIONS_K_EF_UNIT = listFor("B_EmInst", "K17");
+export const D98_OPTIONS_PFC = listFor("B_EmInst", "D98");
+export const D113_E_OPTIONS = listFor("B_EmInst", "E113");
+export const H40_OPTIONS = listFor("C_Emissions&Energy", "H40");
+export const H41_OPTIONS = listFor("C_Emissions&Energy", "H41");
+export const H42_OPTIONS = listFor("C_Emissions&Energy", "H42");
 export const PX_OFFSET_MAPPING = {"P1": 0, "P2": 65, "P3": 130, "P4": 195, "P5": 260, "P6": 325, "P7": 390, "P8": 455, "P9": 520, "P10": 585};
 
 export const D_PROCESSES_L67_DETAILED_OPTIONS = [
@@ -74,48 +44,14 @@ export const D_PROCESSES_L67_DETAILED_OPTIONS = [
     { value: "Mix", label: "Mix : 多個以上電力來源，混用方法判定係數" }
 ];
 
-export const SOURCE_OPTIONS = ["Measured", "Default", "Unknown"];
-export const JUSTIFICATION_OPTIONS = ["Unreasonable costs for more accurate monitoring", "Data gaps", "Other"];
-
-export const CP_INSTRUMENT_OPTIONS = [
-    "Carbon Tax", "Carbon Levy", "Carbon Fee",
-    "National Emissions Trading System", "Regional Emissions Trading System",
-    "Combination", "Other"
-];
-
-export const CP_REBATE_TYPE_OPTIONS = [
-    "Free allocation", "Financial compensation", "Tax deduction", "Combination", "Other"
-];
-
+export const SOURCE_OPTIONS = listFor("E_PurchPrec", "M49");
+export const JUSTIFICATION_OPTIONS = listFor("E_PurchPrec", "K54");
+export const CP_INSTRUMENT_OPTIONS = listFor("Summary_Products", "AL10");
+export const CP_REBATE_TYPE_OPTIONS = listFor("Summary_Products", "AT10");
 export const AC_OPTIONS = ["True", "False"];
 
-export const PARAM_REDUCING_AGENT_OPTIONS = [
-    "Coal or coke",
-    "Natural gas",
-    "Biogas",
-    "Hydrogen"
-];
-
-export const CURRENCY_OPTIONS = [
-    "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN",
-    "BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BOV",
-    "BRL", "BSD", "BTN", "BWP", "BYN", "BZD", "CAD", "CDF", "CHE", "CHF",
-    "CHW", "CLF", "CLP", "CNY", "COP", "COU", "CRC", "CUC", "CUP", "CVE",
-    "CZK", "DJF", "DKK", "DOP", "DZD", "EGP", "ERN", "ETB", "EUR", "FJD",
-    "FKP", "GBP", "GEL", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD", "HKD",
-    "HNL", "HTG", "HUF", "IDR", "ILS", "INR", "IQD", "IRR", "ISK", "JMD",
-    "JOD", "JPY", "KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD",
-    "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LYD", "MAD", "MDL", "MGA",
-    "MKD", "MMK", "MNT", "MOP", "MRU", "MUR", "MVR", "MWK", "MXN", "MXV",
-    "MYR", "MZN", "NAD", "NGN", "NIO", "NOK", "NPR", "NZD", "OMR", "PAB",
-    "PEN", "PGK", "PHP", "PKR", "PLN", "PYG", "QAR", "RON", "RSD", "RUB",
-    "RWF", "SAR", "SBD", "SCR", "SDG", "SEK", "SGD", "SHP", "SLE", "SLL",
-    "SOS", "SRD", "SSP", "STN", "SVC", "SYP", "SZL", "THB", "TJS", "TMT",
-    "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH", "UGX", "USD", "UYI",
-    "UYU", "UYW", "UZS", "VED", "VES", "VND", "VUV", "WST", "XAF", "XCD",
-    "XDR", "XOF", "XPF", "YER", "ZAR", "ZMW", "ZWL"
-];
-
+export const PARAM_REDUCING_AGENT_OPTIONS = listFor("Summary_Products", "P10");
+export const CURRENCY_OPTIONS = listFor("Summary_Products", "AP10");
 export const SUMMARY_PRODUCTS_COLUMN_MAP: Record<string, string> = {
     'process': 'D', 
     'cn_code': 'F', 

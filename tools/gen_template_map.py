@@ -77,12 +77,12 @@ def resolve_list(wb, ws, formula, cached):
     from `cached`, the same workbook loaded with data_only=True.
     """
     if formula is None:
-        return None, "empty"
+        return None, "empty", False
     f = formula.lstrip("=").strip()
     if f.startswith('"') and f.endswith('"'):
-        return [v for v in f.strip('"').split(",")], "inline"
+        return [v for v in f.strip('"').split(",")], "inline", False
     if "INDIRECT" in f.upper() or "OFFSET" in f.upper() or "(" in f:
-        return None, f"dynamic:{f[:60]}"
+        return None, f"dynamic:{f[:60]}", True
     name = f
     target = None
     if name in wb.defined_names:
@@ -92,20 +92,27 @@ def resolve_list(wb, ws, formula, cached):
     if target is None:
         m = re.match(r"^'?([^'!]+)'?!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$", f)
         if not m:
-            return None, f"unresolved:{f[:60]}"
+            return None, f"unresolved:{f[:60]}", True
         dests = [(m.group(1), f"{m.group(2)}{m.group(3)}:{m.group(4)}{m.group(5)}")]
     else:
         dests = list(target.destinations)
     values = []
+    soft = False
     for sheet_name, ref in dests:
         sheet = cached[sheet_name]
+        source = wb[sheet_name]
         ref = ref.replace("$", "")
         min_col, min_row, max_col, max_row = range_boundaries(ref if ":" in ref else f"{ref}:{ref}")
         for row in sheet.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col, values_only=True):
             for v in row:
                 if v is not None and v != "":
                     values.append(v)
-    return values, f"name:{name}"
+        # A list built by formulas depends on what the user types elsewhere in the workbook,
+        # so its cached values cannot be used to validate an entry.
+        for row in source.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+            if any(is_formula(c.value) for c in row):
+                soft = True
+    return values, f"name:{name}{' (dynamic)' if soft else ''}", soft
 
 
 def cell_type(cell, validation):
@@ -147,8 +154,9 @@ def main():
         for dv in ws.data_validations.dataValidation:
             entry = {"type": dv.type or "any"}
             if dv.type == "list":
-                values, source = resolve_list(wb, ws, dv.formula1, cached)
+                values, source, soft = resolve_list(wb, ws, dv.formula1, cached)
                 entry["source"] = source
+                entry["soft"] = soft
                 if values is not None:
                     key = json.dumps([str(v) if not isinstance(v, bool) else v for v in values], ensure_ascii=False)
                     if key not in list_ids:
@@ -171,6 +179,8 @@ def main():
                     rec = {"t": t}
                     if v is not None and "list" in v:
                         rec["l"] = v["list"]
+                        if v.get("soft"):
+                            rec["soft"] = True
                     elif v is not None and v.get("type") == "list":
                         rec["dyn"] = v.get("source", "")
                     cells[cell.coordinate] = rec

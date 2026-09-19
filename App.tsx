@@ -15,9 +15,10 @@ import Summary_ProductsSection from './components/Summary_ProductsSection';
 import CarbonEmissionTool from './components/CarbonEmissionTool';
 import DecarbonizationEngine from './components/DecarbonizationEngine';
 import type { FormData, A_InstData, B_EmInst, C_EmissionsEnergy, D_Processes, E_PurchPrec, Summary_Process, Summary_Product } from './types';
-import { generateAndDownloadExcel } from './utils/excelHandler';
-import { CBAM_EXCEL_BASE64 } from './cbamTemplate';
+import { exportDeclaration } from './utils/exportDeclaration';
+import { TEMPLATE_VERSION } from './utils/xlsxWriter';
 import { PrefsProvider, usePrefs, useT } from './ui/prefs';
+import { loadDraft, saveDraft, parseProject, downloadProject } from './ui/project';
 import { ToastProvider, useToast } from './ui/toast';
 import { UndoContext } from './ui/undo';
 import Sidebar, { type NavGroup } from './ui/Sidebar';
@@ -44,16 +45,17 @@ const EMPTY_FORM: FormData = {
     summary_products: [],
 };
 
-/** Share of fields filled in one section's DOM: required ones if the section marks any, otherwise all. */
-const measureFilled = (el: HTMLElement | null): number | null => {
-    if (!el) return null;
+/** How much of one section's DOM is filled: its required fields if it marks any, otherwise all of them. */
+const measureFilled = (el: HTMLElement | null): { ratio: number | null; missingRequired: number } => {
+    if (!el) return { ratio: null, missingRequired: 0 };
     const fields = Array.from(el.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
         'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=search]), select',
     )).filter(f => !f.disabled);
     const required = fields.filter(f => f.required);
+    const missingRequired = required.filter(f => f.value.trim() === '').length;
     const pool = required.length ? required : fields;
-    if (!pool.length) return null;
-    return pool.filter(f => f.value.trim() !== '').length / pool.length;
+    if (!pool.length) return { ratio: null, missingRequired };
+    return { ratio: pool.filter(f => f.value.trim() !== '').length / pool.length, missingRequired };
 };
 
 const Switch: React.FC<{ on: boolean; onChange: (v: boolean) => void; label: string }> = ({ on, onChange, label }) => (
@@ -72,10 +74,13 @@ const Shell: React.FC = () => {
     const t = useT();
     const toast = useToast();
     const [active, setActive] = useState<SectionId>('A');
-    const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
+    const [formData, setFormData] = useState<FormData>(() => loadDraft() ?? EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
     const [progress, setProgress] = useState<Record<string, number | null>>({});
+    const [missing, setMissing] = useState<Record<string, number>>({});
+    const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const openInput = useRef<HTMLInputElement>(null);
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -111,9 +116,31 @@ const Shell: React.FC = () => {
     // --- Completion rings ("已填"), measured from every mounted section -----------------
     useLayoutEffect(() => {
         const next: Record<string, number | null> = {};
-        for (const s of FORM_SECTIONS) next[s.id] = measureFilled(sectionRefs.current[s.id]);
+        const miss: Record<string, number> = {};
+        for (const s of FORM_SECTIONS) {
+            const m = measureFilled(sectionRefs.current[s.id]);
+            next[s.id] = m.ratio;
+            miss[s.id] = m.missingRequired;
+        }
         setProgress(prev => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+        setMissing(prev => (JSON.stringify(prev) === JSON.stringify(miss) ? prev : miss));
     }, [formData, lang]);
+
+    // Autosave: the draft comes back after a crash or a restart.
+    useEffect(() => {
+        if (formData === EMPTY_FORM) return;
+        const id = window.setTimeout(() => { saveDraft(formData); setSavedAt(new Date()); }, 800);
+        return () => window.clearTimeout(id);
+    }, [formData]);
+
+    const openProject = async (file: File) => {
+        try {
+            setFormData(parseProject(await file.text()));
+            toast.show({ message: t(`已開啟 ${file.name}`, `Opened ${file.name}`), tone: 'success' });
+        } catch (e: any) {
+            toast.show({ message: e?.message ?? String(e), tone: 'error', duration: 9000 });
+        }
+    };
 
     const select = (id: string) => {
         setActive(id as SectionId);
@@ -123,12 +150,10 @@ const Shell: React.FC = () => {
     const handleDownload = async () => {
         setIsSaving(true);
         try {
-            const clean = CBAM_EXCEL_BASE64.replace(/^data:.*,/, '');
-            const bytes = Uint8Array.from(atob(clean), c => c.charCodeAt(0));
-            await generateAndDownloadExcel(formData, bytes.buffer);
-            toast.show({ message: t('申報表已開始下載', 'Download started'), tone: 'success' });
+            const filename = await exportDeclaration(formData, formData.a_instData.static.I20 as string);
+            toast.show({ message: t(`已產生 ${filename}`, `Created ${filename}`), tone: 'success' });
         } catch (error: any) {
-            toast.show({ message: t(`產生申報表失敗：${error?.message ?? error}`, `Could not create the file: ${error?.message ?? error}`), tone: 'error' });
+            toast.show({ message: error?.message ?? String(error), tone: 'error', duration: 9000 });
         } finally {
             setIsSaving(false);
         }
@@ -192,6 +217,22 @@ const Shell: React.FC = () => {
                 <div ref={contentRef} className="relative flex-1 overflow-y-auto">
                     <div className="material-bar sticky top-0 z-20 flex h-12 items-center gap-3 px-6">
                         <h1 className="flex-1 truncate text-[0.9375rem] font-semibold text-slate-900">{pageTitle}</h1>
+                        {savedAt && (
+                            <span className="hidden text-xs text-slate-500 sm:inline">
+                                {t(`已自動儲存 ${savedAt.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`,
+                                    `Saved ${savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`)}
+                            </span>
+                        )}
+                        <input ref={openInput} type="file" accept=".cbam,application/json" className="hidden"
+                            onChange={e => { const f = e.target.files?.[0]; if (f) openProject(f); e.target.value = ''; }} />
+                        <button type="button" onClick={() => openInput.current?.click()}
+                            className="pressable rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-900/5">
+                            {t('開啟專案', 'Open')}
+                        </button>
+                        <button type="button" onClick={() => { downloadProject(formData, formData.a_instData.static.I20 as string); toast.show({ message: t('專案檔已下載', 'Project file saved'), tone: 'success' }); }}
+                            className="pressable rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-900/5">
+                            {t('儲存專案', 'Save')}
+                        </button>
                         <div className="flex rounded-lg bg-slate-900/5 p-0.5 text-xs font-medium" role="group" aria-label="Language">
                             {(['zh', 'en'] as const).map(l => (
                                 <button key={l} type="button" onClick={() => setLang(l)} aria-pressed={lang === l}
@@ -239,7 +280,7 @@ const Shell: React.FC = () => {
                                     </div>
                                     <div className="flex-1">
                                         <div className="font-semibold text-slate-900">{t('CBAM 排放資料通報範本', 'CBAM communication template')}</div>
-                                        <div className="text-sm text-slate-500">{t('只寫入你填的欄位，範本本身不做任何改動。', 'Only the fields you filled are written; the template itself is untouched.')}</div>
+                                        <div className="text-sm text-slate-500">{t(`官方範本 ${TEMPLATE_VERSION}。只寫入你填的欄位，範本其餘部分完全不動。`, `Official template ${TEMPLATE_VERSION}. Only the fields you filled are written; the rest of the file is untouched.`)}</div>
                                     </div>
                                     <button type="button" onClick={handleDownload} disabled={isSaving}
                                         className="pressable inline-flex items-center gap-2 rounded-full bg-indigo-500 px-5 py-2.5 font-semibold text-white hover:bg-indigo-600 disabled:opacity-50">
@@ -247,6 +288,32 @@ const Shell: React.FC = () => {
                                         {isSaving ? t('產生中…', 'Creating…') : t('下載申報表', 'Download')}
                                     </button>
                                 </div>
+                                {(() => {
+                                    const gaps = FORM_SECTIONS.filter(s => (missing[s.id] ?? 0) > 0);
+                                    if (!gaps.length) {
+                                        return (
+                                            <div className="flex items-center gap-3 rounded-[var(--radius-card)] bg-emerald-500/10 p-4 text-sm text-slate-700">
+                                                <ShieldCheck size={18} className="shrink-0 text-emerald-600" />
+                                                {t('必填欄位都填好了。', 'Every required field is filled.')}
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div className="rounded-[var(--radius-card)] bg-amber-500/10 p-4">
+                                            <p className="text-sm font-medium text-slate-800">
+                                                {t('還有必填欄位沒填。你仍然可以匯出，進口商可能會退回要求補齊。', 'Some required fields are empty. You can still export; your importer may send it back.')}
+                                            </p>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {gaps.map(s => (
+                                                    <button key={s.id} type="button" onClick={() => select(s.id)}
+                                                        className="pressable rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-white">
+                                                        {(lang === 'zh' ? s.zh : s.en)} · {missing[s.id]}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-slate-900/[0.03] p-4 text-xs leading-relaxed text-slate-500">
                                     <ShieldCheck size={16} className="mt-0.5 shrink-0" />
                                     <p>This work is funded by the National Science and Technology Council (NSTC), Taiwan, ROC, under Contract Number 114-2222-E-005-001-. The contents do not necessarily reflect the views and policies of the NSTC.</p>
