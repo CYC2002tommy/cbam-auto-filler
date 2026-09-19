@@ -2,8 +2,9 @@ import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from
 import { MotionConfig } from 'motion/react';
 import {
     Building2, Flame, Zap, Factory, Package, ClipboardList, Boxes, Leaf, Calculator, Download,
-    Settings2, FileSpreadsheet, ShieldCheck,
+    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy,
 } from 'lucide-react';
+import HelpPage from './components/HelpPage';
 import A_InstDataSection from './components/A_InstDataSection';
 import B_EmInstSection from './components/B_EmInstSection';
 import C_EmissionsEnergySection from './components/C_EmissionsEnergySection';
@@ -21,7 +22,7 @@ import { ToastProvider, useToast } from './ui/toast';
 import { UndoContext } from './ui/undo';
 import Sidebar, { type NavGroup } from './ui/Sidebar';
 
-type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export';
+type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export' | 'Help';
 
 const FORM_SECTIONS: { id: SectionId; zh: string; en: string; sheet: string; icon: typeof Building2 }[] = [
     { id: 'A', zh: '設施資訊', en: 'Installation', sheet: 'A_InstData', icon: Building2 },
@@ -141,13 +142,19 @@ const Shell: React.FC = () => {
                 { id: 'Scenario', zh: '情境試算', en: 'Scenario calculator', icon: Calculator },
             ],
         },
-        { zh: '輸出', en: 'Output', items: [{ id: 'Export', zh: '匯出申報表', en: 'Export', icon: Download }] },
+        {
+            zh: '輸出', en: 'Output', items: [
+                { id: 'Export', zh: '匯出申報表', en: 'Export', icon: Download },
+                { id: 'Help', zh: '說明與資源', en: 'Help & resources', icon: LifeBuoy },
+            ],
+        },
     ];
 
     const current = FORM_SECTIONS.find(s => s.id === active);
     const pageTitle = current ? (lang === 'zh' ? current.zh : current.en)
         : active === 'Decarbon' ? t('減碳建議', 'Decarbonisation')
         : active === 'Scenario' ? t('情境試算', 'Scenario calculator')
+        : active === 'Help' ? t('說明與資源', 'Help & resources')
         : t('匯出申報表', 'Export');
     const idx = FORM_SECTIONS.findIndex(s => s.id === active);
 
@@ -215,7 +222,8 @@ const Shell: React.FC = () => {
                         <div hidden={active !== 'SumProd'} ref={el => { sectionRefs.current.SumProd = el; }}><Summary_ProductsSection data={formData.summary_products} setData={updateSumProd} e83Rows={formData.a_instData.e83} /></div>
 
                         {active === 'Decarbon' && <DecarbonizationEngine />}
-                        {active === 'Scenario' && <CarbonEmissionTool />}
+                        {active === 'Scenario' && <CarbonEmissionTool e62Rows={formData.a_instData.e62} />}
+                        {active === 'Help' && <HelpPage />}
 
                         {active === 'Export' && (
                             <div className="space-y-6">

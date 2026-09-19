@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePrefs } from '../ui/prefs';
 import { 
   Settings, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle2, BookOpen 
 } from 'lucide-react';
@@ -313,122 +314,107 @@ const recommendationData: Record<string, any> = {
   }
 };
 
+const HORIZONS = [
+  { key: 'shortTerm', icon: Clock, tint: 'text-emerald-600', bar: 'bg-emerald-500' },
+  { key: 'midTerm', icon: Calendar, tint: 'text-amber-600', bar: 'bg-amber-500' },
+  { key: 'longTerm', icon: TrendingUp, tint: 'text-indigo-600', bar: 'bg-indigo-500' },
+] as const;
+
 const DecarbonizationEngine: React.FC = () => {
-  const [lang, setLang] = useState('zh');
+  const { lang } = usePrefs();
   const [selectedProcess, setSelectedProcess] = useState('');
+  const text = uiText[lang];
+  const rec = selectedProcess ? recommendationData[selectedProcess] : null;
 
   return (
-    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm">
-      <div className="flex items-start gap-4 mb-4">
-        <div className="w-16 text-xs font-bold pt-2 text-slate-500 shrink-0">圖1</div>
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
-              <Settings size={24} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-800">
-                {lang === 'zh' ? '減碳情境建議' : 'Decarbonization Recommendation'}
-              </h2>
-              <p className="text-sm text-slate-500">
-                {lang === 'zh' ? '(Decarbonization Recommendation)' : '(減碳情境建議)'}
-              </p>
-            </div>
-          </div>
-          <p className="text-slate-500 mb-6 text-sm">{uiText[lang].decarbonSubtitle}</p>
-          
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">{uiText[lang].selectLabel}</label>
-            <select
-              className="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 appearance-none text-slate-700 font-medium"
-              value={selectedProcess}
-              onChange={(e) => setSelectedProcess(e.target.value)}
-            >
-              <option value="" disabled>{uiText[lang].selectPlaceholder}</option>
-              {Object.keys(recommendationData).map((key) => (
-                <option key={key} value={key}>{recommendationData[key][lang].title}</option>
-              ))}
-            </select>
-          </div>
-
-          {selectedProcess && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-blue-50 border border-blue-100 p-5 rounded-xl">
-                <h3 className="text-lg font-bold text-blue-900 mb-2">{recommendationData[selectedProcess][lang].title}</h3>
-                <p className="text-blue-800 text-sm leading-relaxed">{recommendationData[selectedProcess][lang].desc}</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-400">
-                  <div className="flex items-center gap-2 mb-3 text-emerald-600">
-                    <Clock size={20} />
-                    <h4 className="font-bold">{uiText[lang].shortTerm}</h4>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed">{recommendationData[selectedProcess][lang].shortTerm}</p>
-                </div>
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-amber-400">
-                  <div className="flex items-center gap-2 mb-3 text-amber-600">
-                    <Calendar size={20} />
-                    <h4 className="font-bold">{uiText[lang].midTerm}</h4>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed">{recommendationData[selectedProcess][lang].midTerm}</p>
-                </div>
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-purple-400">
-                  <div className="flex items-center gap-2 mb-3 text-purple-600">
-                    <TrendingUp size={20} />
-                    <h4 className="font-bold">{uiText[lang].longTerm}</h4>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed">{recommendationData[selectedProcess][lang].longTerm}</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-800 text-white p-6 rounded-xl shadow-md">
-                <div className="flex items-center gap-2 mb-4">
-                  <AlertCircle size={20} className="text-yellow-400" />
-                  <h4 className="font-bold text-lg">{uiText[lang].priorityParamsTitle}</h4>
-                </div>
-                <p className="text-slate-300 text-sm mb-4">{uiText[lang].priorityParamsDesc}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {recommendationData[selectedProcess][lang].parameters.map((param: string, index: number) => {
-                    const parts = param.split(' (');
-                    return (
-                      <div key={index} className="flex items-start gap-2 bg-slate-700/50 p-3 rounded-lg border border-slate-600">
-                        <CheckCircle2 size={16} className="text-emerald-400 mt-0.5 shrink-0" />
-                        <div className="flex flex-col items-start">
-                          <span className="text-sm font-medium">{parts[0]}</span>
-                          {parts[1] && <span className="text-sm text-slate-400">({parts[1]}</span>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* 參考文獻補充說明 */}
-                <div className="mt-6 pt-5 border-t border-slate-700">
-                  <div className="flex items-center gap-2 mb-3 text-slate-400">
-                    <BookOpen size={16} />
-                    <h4 className="text-sm font-bold">{uiText[lang].referencesTitle}</h4>
-                  </div>
-                  <ul className="space-y-2 pl-1">
-                    {recommendationData[selectedProcess].references.map((ref: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-400 leading-relaxed">
-                        <span className="text-slate-500 font-mono mt-0.5 shrink-0">[{idx + 1}]</span>
-                        <span>{ref}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-          {!selectedProcess && (
-            <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 border-dashed text-center flex flex-col items-center justify-center text-slate-400">
-              <Settings size={48} className="mb-4 opacity-20" />
-              <p>{uiText[lang].emptyState}</p>
-            </div>
-          )}
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-[1.75rem] font-bold text-slate-900">{text.decarbonTitle}</h2>
+        <p className="mt-1 max-w-3xl text-sm text-slate-500">{text.decarbonSubtitle}</p>
       </div>
+
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3" role="listbox" aria-label={text.selectLabel}>
+        {Object.keys(recommendationData).map((key) => {
+          const on = key === selectedProcess;
+          const title: string = recommendationData[key][lang].title;
+          return (
+            <button
+              key={key}
+              type="button"
+              role="option"
+              aria-selected={on}
+              onClick={() => setSelectedProcess(key)}
+              className={`pressable rounded-xl px-4 py-3 text-left text-sm font-medium ${on ? 'bg-indigo-500 text-white' : 'card text-slate-800 hover:bg-slate-100'}`}
+            >
+              {title.replace(/^(製程|Process)\s*\d+:\s*/, '')}
+            </button>
+          );
+        })}
+      </div>
+
+      {rec ? (
+        <div className="space-y-5">
+          <div className="card p-6">
+            <h3 className="text-lg font-semibold text-slate-900">{rec[lang].title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{rec[lang].desc}</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {HORIZONS.map(({ key, icon: Icon, tint, bar }) => (
+              <div key={key} className="card relative overflow-hidden p-5">
+                <span className={`absolute inset-x-0 top-0 h-1 ${bar}`} aria-hidden="true" />
+                <div className={`mb-2 flex items-center gap-2 ${tint}`}>
+                  <Icon size={18} />
+                  <h4 className="font-semibold">{text[key]}</h4>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-600">{rec[lang][key]}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="card p-6">
+            <div className="mb-1 flex items-center gap-2 text-slate-900">
+              <AlertCircle size={18} className="text-amber-500" />
+              <h4 className="font-semibold">{text.priorityParamsTitle}</h4>
+            </div>
+            <p className="mb-4 text-sm text-slate-500">{text.priorityParamsDesc}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {rec[lang].parameters.map((param: string, index: number) => {
+                const [main, sub] = param.split(' (');
+                return (
+                  <div key={index} className="flex items-start gap-2 rounded-lg bg-slate-100 p-3">
+                    <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-500" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-800">{main}</div>
+                      {sub && <div className="text-xs text-slate-500">({sub}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hairline mt-6 border-t pt-5">
+              <div className="mb-2 flex items-center gap-2 text-slate-500">
+                <BookOpen size={15} />
+                <h4 className="text-sm font-semibold">{text.referencesTitle}</h4>
+              </div>
+              <ol className="space-y-1.5">
+                {rec.references.map((ref: string, idx: number) => (
+                  <li key={idx} className="flex gap-2 text-sm leading-relaxed text-slate-600">
+                    <span className="shrink-0 font-mono text-slate-400">[{idx + 1}]</span>
+                    <span>{ref}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card flex flex-col items-center px-6 py-12 text-center text-slate-500">
+          <Settings size={36} className="mb-3 text-slate-400" strokeWidth={1.5} />
+          <p className="text-sm">{text.emptyState}</p>
+        </div>
+      )}
     </div>
   );
 };
