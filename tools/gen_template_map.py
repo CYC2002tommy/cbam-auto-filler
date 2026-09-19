@@ -107,11 +107,16 @@ def resolve_list(wb, ws, formula, cached):
             for v in row:
                 if v is not None and v != "":
                     values.append(v)
-        # A list built by formulas depends on what the user types elsewhere in the workbook,
-        # so its cached values cannot be used to validate an entry.
-        for row in source.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
-            if any(is_formula(c.value) for c in row):
-                soft = True
+        # A list that lives on a sheet the user fills in is built from their own entries
+        # (goods categories, process names), so the template's cached values cannot
+        # validate anything. Lists from Translations or the code lists are fixed.
+        if sheet_name in INPUT_SHEETS:
+            soft = True
+        else:
+            for row in source.iter_rows(min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col):
+                for c in row:
+                    if is_formula(c.value) and any(s in str(c.value) for s in INPUT_SHEETS):
+                        soft = True
     return values, f"name:{name}{' (dynamic)' if soft else ''}", soft
 
 
