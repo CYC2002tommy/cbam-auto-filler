@@ -10,4 +10,9 @@ contextBridge.exposeInMainWorld('cbam', {
     saveBinary: (data, suggestedName, filterName, extension) =>
         ipcRenderer.invoke('file:saveBinary', { data, suggestedName, filterName, extension }),
     reveal: (filePath) => ipcRenderer.invoke('file:reveal', filePath),
+    ai: {
+        status: () => ipcRenderer.invoke('ai:status'),
+        setKey: (key) => ipcRenderer.invoke('ai:setKey', key),
+        extract: (payload) => ipcRenderer.invoke('ai:extract', payload),
+    },
 });

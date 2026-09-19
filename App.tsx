@@ -2,9 +2,11 @@ import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from
 import { MotionConfig } from 'motion/react';
 import {
     Building2, Flame, Zap, Factory, Package, ClipboardList, Boxes, Leaf, Calculator, Download,
-    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy,
+    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles,
 } from 'lucide-react';
 import HelpPage from './components/HelpPage';
+import AiDropZone from './components/AiDropZone';
+import { UPLOAD_HINTS } from './ai/fields';
 import A_InstDataSection from './components/A_InstDataSection';
 import B_EmInstSection from './components/B_EmInstSection';
 import C_EmissionsEnergySection from './components/C_EmissionsEnergySection';
@@ -233,6 +235,7 @@ const Shell: React.FC = () => {
     return (
         <UndoContext.Provider value={captureUndo}>
             <div className="flex h-screen overflow-hidden">
+                <AiDropZone form={formData} setForm={setFormData} e83Rows={formData.a_instData.e83} />
                 <Sidebar groups={groups} active={active} onSelect={select} lang={lang} header={header} footer={footer} />
 
                 <div ref={contentRef} className="relative flex-1 overflow-y-auto">
@@ -271,6 +274,15 @@ const Shell: React.FC = () => {
                                 <p className="mt-1 text-sm text-slate-500">
                                     {t(`對應官方範本工作表 ${current.sheet}`, `Official template sheet ${current.sheet}`)}
                                 </p>
+                                {UPLOAD_HINTS[current.id] && (
+                                    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-[var(--radius-card)] bg-indigo-500/[0.07] px-4 py-3">
+                                        <Sparkles size={15} className="shrink-0 text-indigo-500" />
+                                        <span className="text-[0.8125rem] font-medium text-slate-700">{t('可以直接把這些拖進來讓 AI 讀：', 'Drop any of these in and the AI will read them:')}</span>
+                                        {UPLOAD_HINTS[current.id].map(h => (
+                                            <span key={h.en} className="rounded-full bg-white/70 px-2.5 py-1 text-xs text-slate-600">{lang === 'zh' ? h.zh : h.en}</span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 

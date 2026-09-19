@@ -13,6 +13,12 @@ declare global {
             saveProject?: (text: string, suggestedName: string) => Promise<string | null>;
             saveBinary?: (data: ArrayBuffer, suggestedName: string, filterName: string, extension: string) => Promise<string | null>;
             reveal?: (filePath: string) => Promise<void>;
+            ai?: {
+                status: () => Promise<{ available: boolean }>;
+                setKey: (key: string) => Promise<boolean>;
+                extract: (payload: { dataBase64: string; mimeType: string; fields: { id: string; label: string; unit?: string; hint?: string }[] })
+                    => Promise<{ documentType?: string; period?: string; values: { fieldId: string; value: string; unit?: string; evidence: string; confidence: number }[] }>;
+            };
         };
     }
 }

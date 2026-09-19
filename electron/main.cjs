@@ -82,6 +82,17 @@ ipcMain.handle('file:saveBinary', async (_event, { data, suggestedName, filterNa
 
 ipcMain.handle('file:reveal', async (_event, filePath) => { shell.showItemInFolder(filePath); });
 
+// --- AI document reading -------------------------------------------------------------
+const gemini = require('./gemini.cjs');
+let userKey = null;   // a key the user pasted in settings, kept in memory for the session
+
+ipcMain.handle('ai:status', async () => ({ available: gemini.hasKey() || Boolean(userKey) }));
+ipcMain.handle('ai:setKey', async (_event, key) => { userKey = key || null; return true; });
+ipcMain.handle('ai:extract', async (_event, { dataBase64, mimeType, fields }) => {
+    if (userKey) process.env.GEMINI_API_KEY = userKey;
+    return gemini.extract({ dataBase64, mimeType, fields, pinModel: app.isPackaged });
+});
+
 app.whenReady().then(() => {
     createWindow();
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
