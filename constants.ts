@@ -1,5 +1,5 @@
 
-export const E62_OPTIONS = ["Cement", "Cement clinker", "Calcined clays", "Aluminous cement", "Iron or steel products", "Crude steel", "Direct reduced iron", "Pig iron", "Alloys (FeMn, FeCr, FeNi)", "Sintered Ore", "Hydrogen", "Ammonia", "Nitric acid", "Urea", "Mixed fertilisers", "Aluminium products", "Unwrought aluminium", "Electricity (export to EU)"];
+export const E62_OPTIONS = ["Cement", "Cement clinker", "Calcined clays ", "Aluminous cement", "Iron or steel products", "Crude steel", "Direct reduced iron", "Pig iron", "Alloys (FeMn, FeCr, FeNi)", "Sintered Ore", "Hydrogen", "Ammonia", "Nitric acid", "Urea", "Mixed fertilisers", "Aluminium products", "Unwrought aluminium", "Electricity (export to EU)"];
 export const E83_BASE_OPTIONS = ["Only direct production", "n.a."];
 
 export const CATEGORIES_WITH_ROUTES = [
@@ -75,7 +75,7 @@ export const D_PROCESSES_L67_DETAILED_OPTIONS = [
 ];
 
 export const SOURCE_OPTIONS = ["Measured", "Default", "Unknown"];
-export const JUSTIFICATION_OPTIONS = ["Unreasonable costs for more accurate data", "Data gaps", "Other"];
+export const JUSTIFICATION_OPTIONS = ["Unreasonable costs for more accurate monitoring", "Data gaps", "Other"];
 
 export const CP_INSTRUMENT_OPTIONS = [
     "Carbon Tax", "Carbon Levy", "Carbon Fee",

@@ -1,29 +1,56 @@
-
 import React, { InputHTMLAttributes, SelectHTMLAttributes, useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check, Search } from 'lucide-react';
+import { splitLabel, usePrefs, useOptionLabel, useT } from '../ui/prefs';
+
+const CELL = /^[A-Z]{1,3}\d{1,4}$/;
+
+/**
+ * Field label. In Chinese mode the EU template's English name sits underneath in
+ * small type, so users can match the field against EU guidance; in English mode it is
+ * English only. The cell code (I20, L65…) shows only when "顯示欄位代號" is on.
+ */
+export const FieldLabel: React.FC<{ label: string; htmlFor?: string; required?: boolean; code?: string }> = ({ label, htmlFor, required, code }) => {
+    const { lang } = usePrefs();
+    const { zh, en } = splitLabel(label);
+    const main = lang === 'zh' ? (zh || en) : (en || zh);
+    const sub = lang === 'zh' && zh && en ? en : '';
+    return (
+        <label htmlFor={htmlFor} className="mb-1.5 block">
+            <span className="flex items-baseline gap-1.5 text-[0.8125rem] font-medium text-slate-700">
+                <span>{main}</span>
+                {required && <span className="text-red-500" aria-hidden="true">*</span>}
+                {code && <span className="field-code rounded bg-slate-100 px-1 font-mono text-[0.6875rem] text-slate-500">{code}</span>}
+            </span>
+            {sub && <span className="block text-[0.6875rem] leading-tight tracking-normal text-slate-500">{sub}</span>}
+        </label>
+    );
+};
+
+const codeFor = (id?: string, code?: string) => code ?? (id && CELL.test(id) ? id : undefined);
+
+const controlBase =
+    'field block w-full px-3 py-2 text-[0.9375rem] text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label: string;
     id: string;
     unit?: string;
+    code?: string;
 }
 
-export const TextInput: React.FC<InputProps> = ({ label, id, required, unit, ...props }) => (
+export const TextInput: React.FC<InputProps> = ({ label, id, required, unit, code, ...props }) => (
     <div>
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
-            {label} {required && <span className="text-red-500 font-bold">*</span>}
-        </label>
-        <div className="relative mt-1 rounded-md shadow-sm">
-            <input 
-                id={id} 
+        <FieldLabel label={label} htmlFor={id} required={required} code={codeFor(id, code)} />
+        <div className="relative">
+            <input
+                id={id}
                 required={required}
-                {...props} 
+                {...props}
                 onWheel={(e) => props.type === 'number' && e.currentTarget.blur()}
-                className={`block w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${unit ? 'pr-12' : ''}`} 
+                className={`${controlBase} ${props.type === 'number' ? 'tabular-nums' : ''} ${unit ? 'pr-14' : ''}`}
             />
             {unit && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                    <span className="text-slate-500 sm:text-sm">{unit}</span>
-                </div>
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500">{unit}</span>
             )}
         </div>
     </div>
@@ -39,28 +66,29 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
     id: string;
     options: (string | SelectOption)[];
     includeEmpty?: boolean;
+    code?: string;
 }
 
-export const SelectInput: React.FC<SelectProps> = ({ label, id, options, required, includeEmpty = true, ...props }) => (
-    <div>
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
-            {label} {required && <span className="text-red-500 font-bold">*</span>}
-        </label>
-        <select 
-            id={id} 
-            required={required}
-            {...props} 
-            className="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-        >
-            {includeEmpty && <option value="">--- Please Select (請選擇) ---</option>}
-            {options.map((opt, idx) => {
-                const value = typeof opt === 'string' ? opt : opt.value;
-                const displayLabel = typeof opt === 'string' ? opt : opt.label;
-                return <option key={`${value}-${idx}`} value={value}>{displayLabel}</option>;
-            })}
-        </select>
-    </div>
-);
+export const SelectInput: React.FC<SelectProps> = ({ label, id, options, required, includeEmpty = true, code, ...props }) => {
+    const optionLabel = useOptionLabel();
+    const t = useT();
+    return (
+        <div>
+            <FieldLabel label={label} htmlFor={id} required={required} code={codeFor(id, code)} />
+            <div className="relative">
+                <select id={id} required={required} {...props} className={`${controlBase} appearance-none pr-9`}>
+                    {includeEmpty && <option value="">{t('請選擇…', 'Select…')}</option>}
+                    {options.map((opt, idx) => {
+                        const value = typeof opt === 'string' ? opt : opt.value;
+                        const text = typeof opt === 'string' ? optionLabel(opt) : optionLabel(opt.value, opt.label);
+                        return <option key={`${value}-${idx}`} value={value}>{text}</option>;
+                    })}
+                </select>
+                <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            </div>
+        </div>
+    );
+};
 
 interface SearchableSelectProps {
     label: string;
@@ -70,100 +98,80 @@ interface SearchableSelectProps {
     onChange: (value: string) => void;
     placeholder?: string;
     required?: boolean;
+    code?: string;
 }
 
-export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, options, value, onChange, required, placeholder = "--- Please Select (請選擇) ---" }) => {
+export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, options, value, onChange, required, placeholder, code }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const optionLabel = useOptionLabel();
+    const t = useT();
 
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) setIsOpen(false);
         };
-    }, [wrapperRef]);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
-    const filteredOptions = options.filter(opt => {
-        const str = typeof opt === 'string' ? opt : opt.label;
-        return str.toLowerCase().includes(searchTerm.toLowerCase()) || 
-               (typeof opt !== 'string' && opt.value.toLowerCase().includes(searchTerm.toLowerCase()));
-    });
-
-    const selectedOption = options.find(opt => 
-        (typeof opt === 'string' ? opt : opt.value) === value
-    );
-    const displayValue = selectedOption 
-        ? (typeof selectedOption === 'string' ? selectedOption : selectedOption.label)
-        : value;
+    const textOf = (opt: string | SelectOption) => (typeof opt === 'string' ? optionLabel(opt) : optionLabel(opt.value, opt.label));
+    const valueOf = (opt: string | SelectOption) => (typeof opt === 'string' ? opt : opt.value);
+    const term = searchTerm.toLowerCase();
+    const filteredOptions = options.filter(opt => textOf(opt).toLowerCase().includes(term) || valueOf(opt).toLowerCase().includes(term));
+    const selected = options.find(opt => valueOf(opt) === value);
 
     return (
         <div className="relative" ref={wrapperRef}>
-            <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
-                {label} {required && <span className="text-red-500 font-bold">*</span>}
-            </label>
-            <div 
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm sm:text-sm cursor-pointer flex justify-between items-center ${isOpen ? 'ring-2 ring-indigo-500 border-indigo-500' : ''}`}
-                onClick={() => {
-                    setIsOpen(!isOpen);
-                    if (!isOpen) setSearchTerm('');
-                }}
+            <FieldLabel label={label} htmlFor={id} required={required} code={codeFor(id, code)} />
+            <button
+                id={id}
+                type="button"
+                className={`${controlBase} flex items-center justify-between text-left`}
+                onClick={() => { setIsOpen(!isOpen); if (!isOpen) setSearchTerm(''); }}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
             >
-                <span className={`block truncate ${value ? "text-slate-900" : "text-slate-400"}`}>
-                    {value ? displayValue : placeholder}
+                <span className={`block truncate ${value ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {value ? (selected ? textOf(selected) : value) : (placeholder ?? t('請選擇…', 'Select…'))}
                 </span>
-                <svg className="h-5 w-5 text-slate-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-            </div>
+                <ChevronDown size={16} className={`shrink-0 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
 
             {isOpen && (
-                <div className="absolute z-20 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                    <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
+                <div className="material-sheet absolute z-30 mt-1.5 w-full overflow-hidden rounded-[var(--radius-control)]" style={{ transformOrigin: 'top center' }}>
+                    <div className="flex items-center gap-2 px-3 py-2 hairline border-b">
+                        <Search size={14} className="text-slate-400" />
                         <input
                             type="text"
-                            className="w-full border border-slate-300 rounded px-2 py-1 text-sm focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                            placeholder="Search (搜尋)..."
+                            className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                            placeholder={t('搜尋', 'Search')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
                             autoFocus
                         />
                     </div>
-                    {filteredOptions.length > 0 ? (
-                        filteredOptions.map((opt, idx) => {
-                             const optValue = typeof opt === 'string' ? opt : opt.value;
-                             const optLabel = typeof opt === 'string' ? opt : opt.label;
-                             return (
+                    <div className="max-h-60 overflow-auto py-1" role="listbox">
+                        {filteredOptions.length > 0 ? filteredOptions.map((opt, idx) => {
+                            const optValue = valueOf(opt);
+                            const active = value === optValue;
+                            return (
                                 <div
                                     key={`${optValue}-${idx}`}
-                                    className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-50 ${value === optValue ? 'bg-indigo-100 text-indigo-900 font-semibold' : 'text-slate-900'}`}
-                                    onClick={() => {
-                                        onChange(optValue);
-                                        setIsOpen(false);
-                                    }}
+                                    role="option"
+                                    aria-selected={active}
+                                    className={`mx-1 flex items-center justify-between rounded-md px-2.5 py-1.5 text-sm ${active ? 'bg-indigo-500 text-white' : 'text-slate-800 hover:bg-indigo-500/10'}`}
+                                    onClick={() => { onChange(optValue); setIsOpen(false); }}
                                 >
-                                    <span className="block truncate">{optLabel}</span>
-                                    {value === optValue && (
-                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600">
-                                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                        </span>
-                                    )}
+                                    <span className="truncate">{textOf(opt)}</span>
+                                    {active && <Check size={14} />}
                                 </div>
                             );
-                        })
-                    ) : (
-                        <div className="cursor-default select-none relative py-2 pl-3 pr-9 text-slate-500 italic">
-                            No results (無符合結果)
-                        </div>
-                    )}
+                        }) : (
+                            <div className="px-3 py-2 text-sm text-slate-500">{t('沒有符合的結果', 'No results')}</div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -175,17 +183,24 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button: React.FC<ButtonProps> = ({ children, variant = 'add', ...props }) => {
-    const baseClasses = "px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
-    const variantClasses = {
-        add: "bg-indigo-500 text-white hover:bg-indigo-600 focus:ring-indigo-500",
-        remove: "bg-red-500 text-white rounded-full p-1 w-7 h-7 flex items-center justify-center hover:bg-red-600 focus:ring-red-500",
-        action: "bg-indigo-500 text-white hover:bg-indigo-600 focus:ring-indigo-500",
-        primary: "w-full sm:w-auto bg-emerald-500 text-white px-8 py-3 text-lg font-semibold hover:bg-emerald-600 focus:ring-emerald-500 transition-transform transform hover:scale-105"
+    const t = useT();
+    const { lang } = usePrefs();
+    if (typeof children === 'string') {
+        const { zh, en } = splitLabel(children);
+        children = lang === 'zh' ? (zh || en) : (en || zh);
+    }
+    const styles = {
+        add: 'rounded-full bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600',
+        remove: 'flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500',
+        action: 'rounded-full bg-slate-200/70 px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-300/70',
+        primary: 'rounded-full bg-indigo-500 px-6 py-2.5 font-semibold text-white hover:bg-indigo-600',
     };
     return (
-        <button className={`${baseClasses} ${variantClasses[variant]}`} {...props}>
+        <button type="button" className={`pressable disabled:opacity-40 ${styles[variant]}`} {...props}>
             {variant === 'remove' ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-label={t('刪除', 'Remove')}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
             ) : children}
         </button>
     );

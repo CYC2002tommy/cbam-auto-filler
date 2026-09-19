@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
+import { Factory } from 'lucide-react';
 import type { D_Processes, KeyValue } from '../types';
-import CollapsibleSection from './CollapsibleSection';
 import ProcessForm from './ProcessForm';
-import { SelectInput } from './FormControls';
+import { Group } from './Layout';
 import { CATEGORIES_WITH_ROUTES } from '../constants';
+import { useT, useOptionLabel } from '../ui/prefs';
 
 interface Props {
     data: D_Processes;
@@ -14,114 +14,85 @@ interface Props {
 }
 
 interface ProcessBlock {
-    id: string;      // "P1"
-    label: string;   // "P1 - User Defined Name"
-    category: string;    // "Pig Iron" (Used for logic)
+    id: string;       // "P1"
+    name: string;     // user-defined name
+    category: string; // aggregated goods category
 }
 
 const D_ProcessesSection: React.FC<Props> = ({ data, setData, e83Rows, e62Rows }) => {
-    const [processes, setProcesses] = useState<ProcessBlock[]>([]);
-    const [selectedProcessString, setSelectedProcessString] = useState<string>('');
+    const t = useT();
+    const optionLabel = useOptionLabel();
+    const [selectedId, setSelectedId] = useState<string>('');
 
-    // Update active processes list whenever e83Rows changes
+    const processes: ProcessBlock[] = e83Rows
+        .map((row, index) => ({ id: `P${index + 1}`, name: (row.l as string) || '', category: row.e as string }))
+        .filter(p => p.category && p.category !== 'n.a.');
+
     useEffect(() => {
-        const active: ProcessBlock[] = [];
-        e83Rows.forEach((row, index) => {
-            const pId = `P${index + 1}`;
-            const category = (row.e as string);
-            const userDefinedName = (row.l as string); // User defined name
-            
-            // Consider active if category exists and is not 'n.a.'
-            if (category && category !== 'n.a.') {
-                active.push({
-                    id: pId,
-                    label: `${pId} - ${userDefinedName || '(No Name)'}`, // Display user name
-                    category: category // Store category for logic lookups
-                });
-            }
-        });
-        setProcesses(active);
+        if (!processes.length) { if (selectedId) setSelectedId(''); return; }
+        if (!processes.some(p => p.id === selectedId)) setSelectedId(processes[0].id);
+    }, [processes.map(p => p.id).join(','), selectedId]);
 
-        // Handle selection persistence or default
-        setSelectedProcessString(prevSelection => {
-            if (active.length === 0) return '';
-            
-            const exists = active.some(p => p.label === prevSelection);
-            if (prevSelection && exists) return prevSelection;
-            
-            return active[0].label;
-        });
+    const current = processes.find(p => p.id === selectedId);
 
-    }, [e83Rows]);
-
-    const handleDataChange = (processId: string, processData: KeyValue) => {
-        setData({ ...data, [processId]: processData });
-    };
-
-    const currentProcess = processes.find(p => p.label === selectedProcessString);
-    
-    // Logic to find active routes from E62
     let activeRoutes: string[] | null = null;
-    if (currentProcess) {
-        if (CATEGORIES_WITH_ROUTES.includes(currentProcess.category)) {
-            // Find matching E62 row based on Category name
-            const matchedE62 = e62Rows.find(row => row.e === currentProcess.category);
+    if (current) {
+        if (CATEGORIES_WITH_ROUTES.includes(current.category)) {
+            const matchedE62 = e62Rows.find(row => row.e === current.category);
             if (matchedE62) {
                 activeRoutes = ['i', 'j', 'k', 'l', 'm', 'n']
                     .map(col => matchedE62[col] as string)
                     .filter(val => val && val.trim() !== '' && val !== 'n.a.');
             }
         } else {
-             // For other categories, default to 'All production routes'
-             activeRoutes = ['All production routes'];
+            activeRoutes = ['All production routes'];
         }
     }
 
-    return (
-        <CollapsibleSection title="D_Processes: Production level and attributed emissions for SEE calculation (SEE 計算之生產水平與歸屬排放量)" noCollapse={true}>
-            <div className="space-y-6">
-                {processes.length > 0 ? (
-                    <div className="space-y-6 animate-fadeIn">
-                        <SelectInput
-                            label="Select Production Process to Edit (選擇要編輯的生產過程)"
-                            id="process-selector"
-                            options={processes.map(p => p.label)}
-                            value={selectedProcessString}
-                            includeEmpty={false}
-                            onChange={e => setSelectedProcessString(e.target.value)}
-                        />
+    if (!processes.length) {
+        return (
+            <Group className="flex flex-col items-center py-12 text-center">
+                <Factory size={36} className="mb-3 text-slate-400" strokeWidth={1.5} />
+                <p className="font-semibold text-slate-800">{t('還沒有生產過程', 'No production processes yet')}</p>
+                <p className="mt-1 max-w-md text-sm text-slate-500">
+                    {t('先到「設施資訊」的 4(b) 新增生產過程並選好商品類別，這裡就會出現每個過程的頁面。',
+                        'Add a process with a goods category under Installation → 4(b); each one then gets a page here.')}
+                </p>
+            </Group>
+        );
+    }
 
-                        {currentProcess && (
-                            <ProcessForm
-                                key={currentProcess.id}
-                                processId={currentProcess.id}
-                                productName={currentProcess.category} // Pass category for Route lookup logic
-                                displayName={currentProcess.label}
-                                data={data[currentProcess.id] || {}}
-                                setData={(processData) => handleDataChange(currentProcess.id, processData)}
-                                activeRoutes={activeRoutes}
-                                e83Rows={e83Rows}
-                            />
-                        )}
-                    </div>
-                ) : (
-                    <div className="bg-white p-6 rounded-lg shadow-md border border-slate-200">
-                         <p className="text-amber-600 font-semibold mb-2">
-                            ⚠️ No production processes defined (尚未定義生產過程)
-                         </p>
-                         <div className="text-slate-600">
-                            Please define processes in <strong>A_InstData</strong> under <strong>(b) Relevant production processes (相關生產過程)</strong> first:
-                            <br/>(請先在 A_InstData 的 (b) Relevant production processes (相關生產過程) 區塊：)
-                            <ul className="list-disc ml-6 mt-2 mb-2">
-                                <li>Add a process item (P1, P2...) (新增一個生產過程條目)</li>
-                                <li>Select a valid <strong>Aggregated goods category</strong> (e.g., Pig iron) (選擇有效的類別)</li>
-                            </ul>
-                            After this, detailed forms will be automatically generated here. (完成後，系統將自動在此處生成對應的詳細資料表單。)
-                        </div>
-                    </div>
-                )}
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('生產過程', 'Production processes')}>
+                {processes.map(p => (
+                    <button
+                        key={p.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={p.id === selectedId}
+                        onClick={() => setSelectedId(p.id)}
+                        className={`pressable rounded-full px-4 py-1.5 text-sm font-medium ${p.id === selectedId ? 'bg-slate-900 text-white' : 'bg-slate-900/5 text-slate-700 hover:bg-slate-900/10'}`}
+                    >
+                        {p.id}{p.name ? ` · ${p.name}` : ''}
+                    </button>
+                ))}
             </div>
-        </CollapsibleSection>
+            {current && (
+                <>
+                    <p className="text-sm text-slate-500">{optionLabel(current.category)}</p>
+                    <ProcessForm
+                        key={current.id}
+                        processId={current.id}
+                        productName={current.category}
+                        data={data[current.id] || {}}
+                        setData={(processData) => setData({ ...data, [current.id]: processData })}
+                        activeRoutes={activeRoutes}
+                        e83Rows={e83Rows}
+                    />
+                </>
+            )}
+        </div>
     );
 };
 

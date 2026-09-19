@@ -1,0 +1,258 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/noto-sans-tc";
+
+/*
+ * Design tokens.
+ * macOS resolves -apple-system to SF Pro / PingFang TC; Windows falls through to the
+ * bundled Inter + Noto Sans TC. Neutrals are Apple system grays; the whole indigo/blue
+ * family maps to one accent (system blue), so existing utility classes inherit it.
+ */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Inter Variable",
+    "Noto Sans TC Variable", "Microsoft JhengHei UI", sans-serif;
+
+  --color-white: #ffffff;
+  --color-slate-50: #f9f9fb;
+  --color-slate-100: #f2f2f7;
+  --color-slate-200: #e5e5ea;
+  --color-slate-300: #d1d1d6;
+  --color-slate-400: #aeaeb2;
+  --color-slate-500: #8e8e93;
+  --color-slate-600: #636366;
+  --color-slate-700: #48484a;
+  --color-slate-800: #3a3a3c;
+  --color-slate-900: #1c1c1e;
+  --color-slate-950: #0d0d0f;
+
+  --color-indigo-50: #eef5ff;
+  --color-indigo-100: #d9e8ff;
+  --color-indigo-200: #b3d1ff;
+  --color-indigo-300: #80b3ff;
+  --color-indigo-400: #4d94ff;
+  --color-indigo-500: #007aff;
+  --color-indigo-600: #0066d6;
+  --color-indigo-700: #0055b3;
+  --color-indigo-800: #00458f;
+  --color-indigo-900: #003166;
+  --color-indigo-950: #001f40;
+
+  --radius-control: 0.625rem;
+  --radius-card: 0.875rem;
+  --radius-sheet: 1.25rem;
+
+  --shadow-card: 0 0.5px 0 rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.06);
+  --shadow-float: 0 12px 40px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.08);
+}
+
+/* Keep gray/blue in step with the neutral and accent scales above. */
+:root {
+  --color-gray-50: var(--color-slate-50);
+  --color-gray-100: var(--color-slate-100);
+  --color-gray-200: var(--color-slate-200);
+  --color-gray-300: var(--color-slate-300);
+  --color-gray-400: var(--color-slate-400);
+  --color-gray-500: var(--color-slate-500);
+  --color-gray-600: var(--color-slate-600);
+  --color-gray-700: var(--color-slate-700);
+  --color-gray-800: var(--color-slate-800);
+  --color-gray-900: var(--color-slate-900);
+  --color-blue-50: var(--color-indigo-50);
+  --color-blue-100: var(--color-indigo-100);
+  --color-blue-200: var(--color-indigo-200);
+  --color-blue-500: var(--color-indigo-500);
+  --color-blue-600: var(--color-indigo-600);
+  --color-blue-700: var(--color-indigo-700);
+  --color-blue-800: var(--color-indigo-800);
+
+  --page: #f5f5f7;
+  --separator: rgb(60 60 67 / 0.14);
+  --material-sidebar: rgb(236 236 240 / 0.72);
+  --material-bar: rgb(250 250 252 / 0.78);
+  --material-sheet: rgb(252 252 253 / 0.86);
+  --material-edge: rgb(255 255 255 / 0.55);
+  --field: rgb(118 118 128 / 0.08);
+  --field-hover: rgb(118 118 128 / 0.12);
+
+  color-scheme: light dark;
+}
+
+/* Dark mode: flip the neutral and accent scales so every existing class adapts. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-white: #1c1c1e;
+    --color-slate-50: #111113;
+    --color-slate-100: #2c2c2e;
+    --color-slate-200: #38383a;
+    --color-slate-300: #48484a;
+    --color-slate-400: #8e8e93;
+    --color-slate-500: #98989d;
+    --color-slate-600: #aeaeb2;
+    --color-slate-700: #d1d1d6;
+    --color-slate-800: #e5e5ea;
+    --color-slate-900: #f2f2f7;
+    --color-slate-950: #ffffff;
+
+    --color-indigo-50: #0b1f38;
+    --color-indigo-100: #0f2a4d;
+    --color-indigo-200: #173d6e;
+    --color-indigo-300: #1f5496;
+    --color-indigo-400: #2f6fc0;
+    --color-indigo-500: #0a84ff;
+    --color-indigo-600: #3d9bff;
+    --color-indigo-700: #6bb3ff;
+    --color-indigo-800: #99ccff;
+    --color-indigo-900: #cce5ff;
+
+    --page: #000000;
+    --separator: rgb(84 84 88 / 0.6);
+    --material-sidebar: rgb(30 30 32 / 0.72);
+    --material-bar: rgb(28 28 30 / 0.78);
+    --material-sheet: rgb(36 36 38 / 0.86);
+    --material-edge: rgb(255 255 255 / 0.08);
+    --field: rgb(118 118 128 / 0.24);
+    --field-hover: rgb(118 118 128 / 0.32);
+    --shadow-card: 0 0 0 0.5px rgb(255 255 255 / 0.06);
+  }
+}
+
+@layer base {
+  html {
+    font-size: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  body {
+    background: var(--page);
+    color: var(--color-slate-900);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.021em;
+    line-height: 1.15;
+  }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  button {
+    cursor: default;
+  }
+}
+
+@layer components {
+  /* Translucent materials: heavier for structure, lighter for floating chrome. */
+  .material-sidebar {
+    background: var(--material-sidebar);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+  }
+  .material-bar {
+    background: var(--material-bar);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: inset 0 -0.5px 0 var(--separator);
+  }
+  .material-sheet {
+    background: var(--material-sheet);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    box-shadow: var(--shadow-float), inset 0 0.5px 0 var(--material-edge);
+  }
+
+  /* Instant press feedback on pointer-down (apple-design §1). */
+  .pressable {
+    transition: transform 100ms ease-out, background-color 150ms ease, opacity 150ms ease;
+  }
+  .pressable:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .field {
+    background: var(--field);
+    border-radius: var(--radius-control);
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+  }
+  .field:hover:not(:disabled) {
+    background: var(--field-hover);
+  }
+  .field:focus,
+  .field:focus-within {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-indigo-500) 35%, transparent);
+  }
+  .field:user-invalid {
+    box-shadow: 0 0 0 2px color-mix(in srgb, #ff3b30 55%, transparent);
+  }
+
+  .card {
+    background: var(--color-white);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .hairline {
+    border-color: var(--separator);
+  }
+
+  /* Field codes (I20, L27…) only when the user turns them on. */
+  .field-code {
+    display: none;
+  }
+  html.show-codes .field-code {
+    display: inline;
+  }
+}
+
+/* Accessibility: honour the three system preferences. */
+@media (prefers-reduced-transparency: reduce) {
+  .material-sidebar,
+  .material-bar,
+  .material-sheet {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .material-sidebar { background: var(--color-slate-100); }
+  .material-bar { background: var(--color-white); }
+  .material-sheet { background: var(--color-white); }
+}
+html.reduce-transparency .material-sidebar,
+html.reduce-transparency .material-bar,
+html.reduce-transparency .material-sheet {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html.reduce-transparency .material-sidebar { background: var(--color-slate-100); }
+html.reduce-transparency .material-bar,
+html.reduce-transparency .material-sheet { background: var(--color-white); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+  .pressable:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --separator: rgb(60 60 67 / 0.5);
+    --field: transparent;
+  }
+  .field {
+    box-shadow: inset 0 0 0 1px var(--color-slate-500);
+  }
+  .card {
+    box-shadow: 0 0 0 1px var(--color-slate-400);
+  }
+}

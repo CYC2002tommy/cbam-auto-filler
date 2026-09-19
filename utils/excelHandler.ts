@@ -144,10 +144,9 @@ export const saveToLocalFile = async (formData: FormData, fileHandle: FileSystem
         await writable.write(outputBuffer);
         await writable.close();
 
-        alert(`✅ Data saved successfully to "${fileHandle.name}"! \n(數據已成功儲存至 "${fileHandle.name}"！)`);
     } catch (error: any) {
         console.error("Error saving excel:", error);
-        alert(`❌ Error saving file (儲存檔案失敗): ${error.message}`);
+        throw error;
     }
 };
 
@@ -178,10 +177,8 @@ export const generateAndDownloadExcel = async (formData: FormData, templateBuffe
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        
-        alert("✅ Report updated successfully! Download started. (報告更新成功！檔案已開始下載。)");
     } catch (error: any) {
         console.error("Error generating excel:", error);
-        alert(`❌ Report generation failed (報告生成失敗): ${error.message}`);
+        throw error;
     }
 };

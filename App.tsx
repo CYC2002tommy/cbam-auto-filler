@@ -1,5 +1,9 @@
-
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from 'react';
+import { MotionConfig } from 'motion/react';
+import {
+    Building2, Flame, Zap, Factory, Package, ClipboardList, Boxes, Leaf, Calculator, Download,
+    Settings2, FileSpreadsheet, ShieldCheck,
+} from 'lucide-react';
 import A_InstDataSection from './components/A_InstDataSection';
 import B_EmInstSection from './components/B_EmInstSection';
 import C_EmissionsEnergySection from './components/C_EmissionsEnergySection';
@@ -9,363 +13,266 @@ import Summary_ProcessSection from './components/Summary_ProcessSection';
 import Summary_ProductsSection from './components/Summary_ProductsSection';
 import CarbonEmissionTool from './components/CarbonEmissionTool';
 import DecarbonizationEngine from './components/DecarbonizationEngine';
-import type { FormData, A_InstData, B_EmInst, C_EmissionsEnergy, D_Processes, E_PurchPrec, Summary_Process, Summary_Product, FileSystemFileHandle } from './types';
-import { PX_OFFSET_MAPPING } from './constants';
+import type { FormData, A_InstData, B_EmInst, C_EmissionsEnergy, D_Processes, E_PurchPrec, Summary_Process, Summary_Product } from './types';
 import { generateAndDownloadExcel } from './utils/excelHandler';
 import { CBAM_EXCEL_BASE64 } from './cbamTemplate';
+import { PrefsProvider, usePrefs, useT } from './ui/prefs';
+import { ToastProvider, useToast } from './ui/toast';
+import { UndoContext } from './ui/undo';
+import Sidebar, { type NavGroup } from './ui/Sidebar';
 
-// Navigation IDs
-type SectionView = 'dashboard' | 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario';
+type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export';
 
-const App: React.FC = () => {
-    const [activeSection, setActiveSection] = useState<SectionView>('dashboard');
+const FORM_SECTIONS: { id: SectionId; zh: string; en: string; sheet: string; icon: typeof Building2 }[] = [
+    { id: 'A', zh: '設施資訊', en: 'Installation', sheet: 'A_InstData', icon: Building2 },
+    { id: 'B', zh: '排放源流', en: 'Source streams', sheet: 'B_EmInst', icon: Flame },
+    { id: 'C', zh: '排放與能源', en: 'Emissions & energy', sheet: 'C_Emissions&Energy', icon: Zap },
+    { id: 'D', zh: '生產過程', en: 'Production processes', sheet: 'D_Processes', icon: Factory },
+    { id: 'E', zh: '採購前驅物', en: 'Purchased precursors', sheet: 'E_PurchPrec', icon: Package },
+    { id: 'SumProc', zh: '過程摘要', en: 'Process summary', sheet: 'Summary_Processes', icon: ClipboardList },
+    { id: 'SumProd', zh: '產品摘要', en: 'Product summary', sheet: 'Summary_Products', icon: Boxes },
+];
 
-    const [formData, setFormData] = useState<FormData>({
-        a_instData: {
-            static: {},
-            e62: [{}],
-            e83: [{}],
-            e102: [{}],
-        },
-        b_emInst: {
-            d17: [{}],
-            d98: [{}],
-            d113: [{}],
-        },
-        c_emissionsEnergy: {},
-        d_processes: {},
-        e_purchPrec: {},
-        summary_process: {},
-        summary_products: [],
-    });
-    
-    const [jsonOutput, setJsonOutput] = useState('');
-    const [isOutputVisible, setIsOutputVisible] = useState(false);
+const EMPTY_FORM: FormData = {
+    a_instData: { static: {}, e62: [{}], e83: [{}], e102: [{}] },
+    b_emInst: { d17: [{}], d98: [{}], d113: [{}] },
+    c_emissionsEnergy: {},
+    d_processes: {},
+    e_purchPrec: {},
+    summary_process: {},
+    summary_products: [],
+};
+
+/** Share of fields filled in one section's DOM: required ones if the section marks any, otherwise all. */
+const measureFilled = (el: HTMLElement | null): number | null => {
+    if (!el) return null;
+    const fields = Array.from(el.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+        'input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=search]), select',
+    )).filter(f => !f.disabled);
+    const required = fields.filter(f => f.required);
+    const pool = required.length ? required : fields;
+    if (!pool.length) return null;
+    return pool.filter(f => f.value.trim() !== '').length / pool.length;
+};
+
+const Switch: React.FC<{ on: boolean; onChange: (v: boolean) => void; label: string }> = ({ on, onChange, label }) => (
+    <label className="flex cursor-default items-center justify-between gap-3 py-1.5 text-sm text-slate-800">
+        {label}
+        <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)}
+            className={`relative h-[1.375rem] w-[2.375rem] shrink-0 rounded-full transition-colors ${on ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+            <span className={`absolute top-0.5 h-[1.125rem] w-[1.125rem] rounded-full shadow transition-transform ${on ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`}
+                style={{ background: '#fff' }} />
+        </button>
+    </label>
+);
+
+const Shell: React.FC = () => {
+    const { lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency } = usePrefs();
+    const t = useT();
+    const toast = useToast();
+    const [active, setActive] = useState<SectionId>('A');
+    const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
     const [isSaving, setIsSaving] = useState(false);
+    const [progress, setProgress] = useState<Record<string, number | null>>({});
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const contentRef = useRef<HTMLDivElement>(null);
 
-    const handleBackToMenu = () => {
-        setActiveSection('dashboard');
-    };
-
-    const updateA_InstData = useCallback((data: A_InstData) => {
-        setFormData(prev => ({ ...prev, a_instData: data }));
-    }, []);
-    const updateB_EmInst = useCallback((data: B_EmInst) => {
-        setFormData(prev => ({ ...prev, b_emInst: data }));
-    }, []);
-    const updateC_EmissionsEnergy = useCallback((data: C_EmissionsEnergy) => {
-        setFormData(prev => ({ ...prev, c_emissionsEnergy: data }));
-    }, []);
-    const updateD_Processes = useCallback((data: D_Processes) => {
-        setFormData(prev => ({ ...prev, d_processes: data }));
-    }, []);
-    const updateE_PurchPrec = useCallback((data: E_PurchPrec) => {
-        setFormData(prev => ({ ...prev, e_purchPrec: data }));
-    }, []);
-    const updateSummary_Process = useCallback((data: Summary_Process) => {
-        setFormData(prev => ({ ...prev, summary_process: data }));
-    }, []);
-    const updateSummary_Products = useCallback((data: Summary_Product[]) => {
-        setFormData(prev => ({ ...prev, summary_products: data }));
-    }, []);
-
-    const generateJson = () => {
-        const output: Record<string, any> = {};
-        // Section A
-        Object.entries(formData.a_instData.static).forEach(([key, value]) => { if (value) output[key] = value; });
-        formData.a_instData.e62.forEach((row, index) => { const rowNum = 62 + index; Object.entries(row).forEach(([key, value]) => { if (value) output[`${key.toUpperCase()}${rowNum}`] = value; }); });
-        formData.a_instData.e83.forEach((row, index) => { const rowNum = 83 + index; output[`D${rowNum}`] = `P${index + 1}`; Object.entries(row).forEach(([key, value]) => { if (value) output[`${key.toUpperCase()}${rowNum}`] = value; }); });
-        formData.a_instData.e102.forEach((row, index) => { const rowNum = 102 + index; Object.entries(row).forEach(([key, value]) => { if (value) output[`${key.toUpperCase()}${rowNum}`] = value; }); });
-        // Section B
-        formData.b_emInst.d17.forEach((row, index) => { const rowNum = 17 + index; Object.entries(row).forEach(([key, value]) => { if (value) output[`${key.toUpperCase()}${rowNum}`] = value; }); });
-        formData.b_emInst.d98.forEach((row, index) => { const rowNum = 98 + index; Object.entries(row).forEach(([key, value]) => { if (value) output[`${key.toUpperCase()}${rowNum}`] = value; }); });
-        formData.b_emInst.d113.forEach((row, index) => { const rowNum = 113 + index; Object.entries(row).forEach(([key, value]) => { if (value) output[`${key.toUpperCase()}${rowNum}`] = value; }); });
-        // Section C
-        Object.entries(formData.c_emissionsEnergy).forEach(([key, value]) => { if (value) output[key] = value; });
-        // Section D
-        Object.entries(formData.d_processes).forEach(([processId, processData]) => {
-            const offset = PX_OFFSET_MAPPING[processId as keyof typeof PX_OFFSET_MAPPING] ?? 0;
-            if(processData) {
-                Object.entries(processData).forEach(([cell, value]) => {
-                    if (value) {
-                         const match = cell.match(/([A-Z]+)(\d+)/);
-                        if (match) {
-                            const col = match[1];
-                            const baseRow = parseInt(match[2], 10);
-                            const finalRow = baseRow + offset;
-                            output[`${col}${finalRow}`] = value;
-                        }
-                    }
-                });
-            }
+    // --- Undo for destructive edits -------------------------------------------------
+    const formRef = useRef(formData);
+    formRef.current = formData;
+    const undo = useRef<{ snapshot: FormData; toastId: number; armed: boolean } | null>(null);
+    const captureUndo = useCallback((message: string) => {
+        const snapshot = formRef.current;
+        const toastId = toast.show({
+            message,
+            action: { label: t('復原', 'Undo'), onClick: () => { undo.current = null; setFormData(snapshot); } },
         });
-        // Section E
-        Object.entries(formData.e_purchPrec).forEach(([cellAddress, value]) => { if (value) output[cellAddress] = value; });
-        // Summary
-        Object.entries(formData.summary_process).forEach(([key, value]) => { if (value) output[`Summary_${key}`] = value; });
-        formData.summary_products.forEach((prod, index) => { output[`Summary_Product_${index + 1}`] = prod; });
+        undo.current = { snapshot, toastId, armed: false };
+    }, [toast, t]);
+    useEffect(() => {
+        const u = undo.current;
+        if (!u) return;
+        if (!u.armed) { u.armed = true; return; }       // the deletion itself
+        toast.dismiss(u.toastId);                        // any later edit retires the offer
+        undo.current = null;
+    }, [formData, toast]);
 
-        setJsonOutput(JSON.stringify(output, null, 2));
-        setIsOutputVisible(true);
+    // --- Section updaters -------------------------------------------------------------
+    const updateA = useCallback((data: A_InstData) => setFormData(prev => ({ ...prev, a_instData: data })), []);
+    const updateB = useCallback((data: B_EmInst) => setFormData(prev => ({ ...prev, b_emInst: data })), []);
+    const updateC = useCallback((data: C_EmissionsEnergy) => setFormData(prev => ({ ...prev, c_emissionsEnergy: data })), []);
+    const updateD = useCallback((data: D_Processes) => setFormData(prev => ({ ...prev, d_processes: data })), []);
+    const updateE = useCallback((data: E_PurchPrec) => setFormData(prev => ({ ...prev, e_purchPrec: data })), []);
+    const updateSumProc = useCallback((data: Summary_Process) => setFormData(prev => ({ ...prev, summary_process: data })), []);
+    const updateSumProd = useCallback((data: Summary_Product[]) => setFormData(prev => ({ ...prev, summary_products: data })), []);
+
+    // --- Completion rings ("已填"), measured from every mounted section -----------------
+    useLayoutEffect(() => {
+        const next: Record<string, number | null> = {};
+        for (const s of FORM_SECTIONS) next[s.id] = measureFilled(sectionRefs.current[s.id]);
+        setProgress(prev => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+    }, [formData, lang]);
+
+    const select = (id: string) => {
+        setActive(id as SectionId);
+        contentRef.current?.scrollTo({ top: 0 });
     };
 
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(jsonOutput).then(() => {
-            const copyBtn = document.getElementById('copy-btn');
-            if (copyBtn) {
-                copyBtn.textContent = 'Copied! (已複製)';
-                setTimeout(() => { copyBtn.textContent = 'Copy (複製)'; }, 2000);
-            }
-        });
-    };
-
-    // Validation Function
-    const validateFormData = (): string[] => {
-        const errors: string[] = [];
-        const { a_instData, summary_products } = formData;
-
-        // A_InstData - Essential Static Data
-        if (!a_instData.static.I20) errors.push("Installation Data (A): Installation Name (I20) is missing. (設施名稱未填)");
-        if (!a_instData.static.I26) errors.push("Installation Data (A): Country (I26) is missing. (國家未填)");
-        
-        // A_InstData - Processes
-        if (!a_instData.e62 || a_instData.e62.length === 0 || !a_instData.e62[0].e) {
-            errors.push("Installation Data (A): At least one 'Aggregated goods category' is required in Section 4(a). (需至少填寫一項聚合商品類別)");
-        }
-
-        // Summary Products - Check if defined
-        if (summary_products.length > 0) {
-            summary_products.forEach((prod, idx) => {
-                if (!prod.name) errors.push(`Summary Products (Item ${idx + 1}): Product Name is missing. (產品 P${idx+1} 名稱未填)`);
-                if (!prod.cn_code) errors.push(`Summary Products (Item ${idx + 1}): CN Code is missing. (產品 P${idx+1} CN代碼未填)`);
-                if (!prod.process) errors.push(`Summary Products (Item ${idx + 1}): Process Name is missing. (產品 P${idx+1} 生產過程未填)`);
-            });
-        }
-
-        return errors;
-    };
-
-    const handleSaveOrDownload = async () => {
-        // 1. Validate (Currently disabled as per user request to allow downloading even if incomplete)
-        /*
-        const errors = validateFormData();
-        if (errors.length > 0) {
-            const errorMsg = "⚠️ Please fill in the following required fields (請填寫以下必填欄位):\n\n" + errors.join("\n");
-            alert(errorMsg);
-            return;
-        }
-        */
-
+    const handleDownload = async () => {
         setIsSaving(true);
         try {
-            if (!CBAM_EXCEL_BASE64) {
-                alert("⚠️ 請先在 cbamTemplate.ts 中填入 CBAM 試算表的 Base64 字串！");
-                return;
-            }
-
-            // 將 Base64 轉換為 ArrayBuffer
-            const cleanBase64 = CBAM_EXCEL_BASE64.replace(/^data:.*,/, '');
-            const byteCharacters = atob(cleanBase64);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-
-            await generateAndDownloadExcel(formData, byteArray.buffer);
-        } catch (error) {
-            console.error("產生 Excel 檔案時發生錯誤:", error);
-            alert("產生 Excel 檔案時發生錯誤，請確認 Base64 字串格式是否正確。");
+            const clean = CBAM_EXCEL_BASE64.replace(/^data:.*,/, '');
+            const bytes = Uint8Array.from(atob(clean), c => c.charCodeAt(0));
+            await generateAndDownloadExcel(formData, bytes.buffer);
+            toast.show({ message: t('申報表已開始下載', 'Download started'), tone: 'success' });
+        } catch (error: any) {
+            toast.show({ message: t(`產生申報表失敗：${error?.message ?? error}`, `Could not create the file: ${error?.message ?? error}`), tone: 'error' });
         } finally {
             setIsSaving(false);
         }
     };
 
-    // --- Components for Dashboard Cards ---
-    const DashboardCard = ({ title, iconPath, onClick, colorClass }: { title: string, iconPath: string, onClick: () => void, colorClass: string }) => {
-        const parts = title.split(' (');
-        return (
-            <button 
-                onClick={onClick}
-                className={`${colorClass} text-white p-6 rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-40 w-full relative overflow-hidden group`}
-            >
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                <div className="bg-white/20 p-4 rounded-full backdrop-blur-sm">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={iconPath}></path>
-                    </svg>
-                </div>
-                <div className="flex flex-col items-center">
-                    <span className="text-base font-semibold tracking-wide text-center leading-tight">{parts[0]}</span>
-                    {parts[1] && (
-                        <span className="text-xs font-medium opacity-90 mt-1">({parts[1]}</span>
-                    )}
-                </div>
-            </button>
-        );
-    };
+    const groups: NavGroup[] = [
+        { zh: '申報表', en: 'Declaration', items: FORM_SECTIONS.map(s => ({ id: s.id, zh: s.zh, en: s.en, icon: s.icon, progress: progress[s.id] ?? null })) },
+        {
+            zh: '分析', en: 'Analysis', items: [
+                { id: 'Decarbon', zh: '減碳建議', en: 'Decarbonisation', icon: Leaf },
+                { id: 'Scenario', zh: '情境試算', en: 'Scenario calculator', icon: Calculator },
+            ],
+        },
+        { zh: '輸出', en: 'Output', items: [{ id: 'Export', zh: '匯出申報表', en: 'Export', icon: Download }] },
+    ];
 
-    const renderDashboard = () => (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl mx-auto mt-6 animate-fadeIn">
-            <DashboardCard 
-                title="Installation Data (設施資訊)" 
-                colorClass="bg-gradient-to-br from-indigo-500 to-indigo-600"
-                iconPath="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                onClick={() => setActiveSection('A')}
-            />
-            <DashboardCard 
-                title="Source Streams (排放源流)" 
-                colorClass="bg-gradient-to-br from-blue-500 to-blue-600"
-                iconPath="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-                onClick={() => setActiveSection('B')}
-            />
-            <DashboardCard 
-                title="Emissions & Energy (排放與能源)" 
-                colorClass="bg-gradient-to-br from-cyan-500 to-cyan-600"
-                iconPath="M13 10V3L4 14h7v7l9-11h-7z"
-                onClick={() => setActiveSection('C')}
-            />
-            <DashboardCard 
-                title="Production Processes (生產過程)" 
-                colorClass="bg-gradient-to-br from-teal-500 to-teal-600"
-                iconPath="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                onClick={() => setActiveSection('D')}
-            />
-            <DashboardCard 
-                title="Purchased Precursors (採購前導物)" 
-                colorClass="bg-gradient-to-br from-emerald-500 to-emerald-600"
-                iconPath="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                onClick={() => setActiveSection('E')}
-            />
-            <DashboardCard 
-                title="Summary Process (過程摘要)" 
-                colorClass="bg-gradient-to-br from-violet-500 to-violet-600"
-                iconPath="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                onClick={() => setActiveSection('SumProc')}
-            />
-            <DashboardCard 
-                title="Summary Products (產品報告摘要)" 
-                colorClass="bg-gradient-to-br from-purple-500 to-purple-600"
-                iconPath="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                onClick={() => setActiveSection('SumProd')}
-            />
+    const current = FORM_SECTIONS.find(s => s.id === active);
+    const pageTitle = current ? (lang === 'zh' ? current.zh : current.en)
+        : active === 'Decarbon' ? t('減碳建議', 'Decarbonisation')
+        : active === 'Scenario' ? t('情境試算', 'Scenario calculator')
+        : t('匯出申報表', 'Export');
+    const idx = FORM_SECTIONS.findIndex(s => s.id === active);
+
+    const header = (
+        <div className="flex items-center gap-2">
+            <FileSpreadsheet size={20} className="shrink-0 text-indigo-500" />
+            <div className="min-w-0 overflow-hidden">
+                <div className="truncate text-[0.9375rem] font-semibold text-slate-900">{t('CBAM 申報助手', 'CBAM Auto-Filler')}</div>
+                <div className="truncate text-[0.6875rem] text-slate-500">{t('歐盟官方範本 V2.1.1', 'EU template V2.1.1')}</div>
+            </div>
+        </div>
+    );
+
+    const footer = (
+        <div className="relative">
+            <button type="button" onClick={() => setSettingsOpen(o => !o)} aria-expanded={settingsOpen}
+                className="pressable flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-900/5">
+                <Settings2 size={16} className="shrink-0" />
+                <span className="truncate">{t('設定', 'Settings')}</span>
+            </button>
+            {settingsOpen && (
+                <div className="material-sheet absolute bottom-11 left-0 z-40 w-64 rounded-[var(--radius-card)] p-3">
+                    <Switch on={showCodes} onChange={setShowCodes} label={t('顯示欄位代號', 'Show cell codes')} />
+                    <Switch on={reduceTransparency} onChange={setReduceTransparency} label={t('降低透明度', 'Reduce transparency')} />
+                </div>
+            )}
         </div>
     );
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl min-h-screen flex flex-col bg-slate-50/50">
-            <header className="text-center mb-10 mt-4">
-                <div className="inline-flex items-center justify-center p-3 bg-indigo-100 rounded-2xl mb-4">
-                    <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 cursor-pointer tracking-tight" onClick={handleBackToMenu}>
-                    CBAM Report Auto-Filler
-                </h1>
-                <p className="text-lg text-slate-500 mt-2 font-medium">CBAM 報告自動填寫工具</p>
-            </header>
+        <UndoContext.Provider value={captureUndo}>
+            <div className="flex h-screen overflow-hidden">
+                <Sidebar groups={groups} active={active} onSelect={select} lang={lang} header={header} footer={footer} />
 
-            <main className="flex-grow">
-                {activeSection === 'dashboard' ? (
-                    <div className="space-y-16">
-                        {/* Data Entry & File Actions */}
-                        <section className="text-center max-w-5xl mx-auto">
-                            <div className="mb-8 flex flex-col items-center">
-                                <h2 className="text-2xl font-bold text-slate-800">STEP 1: 填報CBAM申報表與檔案操作 (Data Entry & File Actions)</h2>
-                                <p className="text-slate-500 mt-2">請依序填寫以下各項資訊，並在完成後下載已自動填寫完畢的 CBAM 試算表</p>
+                <div ref={contentRef} className="relative flex-1 overflow-y-auto">
+                    <div className="material-bar sticky top-0 z-20 flex h-12 items-center gap-3 px-6">
+                        <h1 className="flex-1 truncate text-[0.9375rem] font-semibold text-slate-900">{pageTitle}</h1>
+                        <div className="flex rounded-lg bg-slate-900/5 p-0.5 text-xs font-medium" role="group" aria-label="Language">
+                            {(['zh', 'en'] as const).map(l => (
+                                <button key={l} type="button" onClick={() => setLang(l)} aria-pressed={lang === l}
+                                    className={`pressable rounded-md px-2.5 py-1 ${lang === l ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}>
+                                    {l === 'zh' ? '中文' : 'EN'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <main className="mx-auto max-w-5xl px-6 pb-24 pt-6">
+                        {current && (
+                            <div className="mb-6">
+                                <h2 className="text-[1.75rem] font-bold text-slate-900">{pageTitle}</h2>
+                                <p className="mt-1 text-sm text-slate-500">
+                                    {t(`對應官方範本工作表 ${current.sheet}`, `Official template sheet ${current.sheet}`)}
+                                </p>
                             </div>
-                            
-                            <div className="space-y-8">
-                                {renderDashboard()}
+                        )}
 
-                                <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
-                                    <section className="bg-slate-50 p-6 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6">
-                                        <div className="flex items-center gap-4 text-left">
-                                            <div className="bg-emerald-100 p-3 rounded-full">
-                                                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-800 text-lg">下載 CBAM試算表</h3>
-                                                <p className="text-sm text-slate-500 mt-1">包含您填寫的所有數據，格式完全符合官方規範</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={handleSaveOrDownload}
-                                            disabled={isSaving}
-                                            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md text-white w-full sm:w-auto ${isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg transform hover:-translate-y-0.5'}`}
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            {isSaving ? '處理中...' : 'Download Copy (下載檔案)'}
-                                        </button>
-                                    </section>
+                        {/* Every form section stays mounted so the sidebar rings can measure it. */}
+                        <div hidden={active !== 'A'} ref={el => { sectionRefs.current.A = el; }}><A_InstDataSection data={formData.a_instData} setData={updateA} /></div>
+                        <div hidden={active !== 'B'} ref={el => { sectionRefs.current.B = el; }}><B_EmInstSection data={formData.b_emInst} setData={updateB} /></div>
+                        <div hidden={active !== 'C'} ref={el => { sectionRefs.current.C = el; }}><C_EmissionsEnergySection data={formData.c_emissionsEnergy} setData={updateC} /></div>
+                        <div hidden={active !== 'D'} ref={el => { sectionRefs.current.D = el; }}><D_ProcessesSection data={formData.d_processes} setData={updateD} e83Rows={formData.a_instData.e83} e62Rows={formData.a_instData.e62} /></div>
+                        <div hidden={active !== 'E'} ref={el => { sectionRefs.current.E = el; }}><E_PurchPrecSection data={formData.e_purchPrec} setData={updateE} e83Rows={formData.a_instData.e83} e102Rows={formData.a_instData.e102} /></div>
+                        <div hidden={active !== 'SumProc'} ref={el => { sectionRefs.current.SumProc = el; }}><Summary_ProcessSection data={formData.summary_process} setData={updateSumProc} /></div>
+                        <div hidden={active !== 'SumProd'} ref={el => { sectionRefs.current.SumProd = el; }}><Summary_ProductsSection data={formData.summary_products} setData={updateSumProd} e83Rows={formData.a_instData.e83} /></div>
 
-                                    {/* Funding Acknowledgement */}
-                                    <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-center text-slate-600 text-sm leading-relaxed italic font-medium">
-                                        <p>
-                                            This work is funded by the National Science and Technology Council (NSTC), Taiwan, ROC, under Contract Number 114-2222-E-005-001-. 
-                                            The contents do not necessarily reflect the views and policies of the NSTC.
-                                        </p>
+                        {active === 'Decarbon' && <DecarbonizationEngine />}
+                        {active === 'Scenario' && <CarbonEmissionTool />}
+
+                        {active === 'Export' && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h2 className="text-[1.75rem] font-bold text-slate-900">{t('匯出申報表', 'Export')}</h2>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {t('把填好的資料寫進歐盟官方範本，交給你的歐盟進口商。', 'Write your data into the official EU template for your EU importer.')}
+                                    </p>
+                                </div>
+                                <div className="card flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                                        <FileSpreadsheet size={24} />
                                     </div>
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-slate-900">{t('CBAM 排放資料通報範本', 'CBAM communication template')}</div>
+                                        <div className="text-sm text-slate-500">{t('只寫入你填的欄位，範本本身不做任何改動。', 'Only the fields you filled are written; the template itself is untouched.')}</div>
+                                    </div>
+                                    <button type="button" onClick={handleDownload} disabled={isSaving}
+                                        className="pressable inline-flex items-center gap-2 rounded-full bg-indigo-500 px-5 py-2.5 font-semibold text-white hover:bg-indigo-600 disabled:opacity-50">
+                                        <Download size={18} />
+                                        {isSaving ? t('產生中…', 'Creating…') : t('下載申報表', 'Download')}
+                                    </button>
+                                </div>
+                                <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-slate-900/[0.03] p-4 text-xs leading-relaxed text-slate-500">
+                                    <ShieldCheck size={16} className="mt-0.5 shrink-0" />
+                                    <p>This work is funded by the National Science and Technology Council (NSTC), Taiwan, ROC, under Contract Number 114-2222-E-005-001-. The contents do not necessarily reflect the views and policies of the NSTC.</p>
                                 </div>
                             </div>
-                        </section>
+                        )}
 
-                        {/* Step 2: Decarbonization Recommendation */}
-                        <section className="max-w-5xl mx-auto mt-16">
-                            <div className="mb-8 flex flex-col items-center text-center">
-                                <h2 className="text-2xl font-bold text-slate-800 uppercase tracking-tight">STEP 2: 減碳情境建議 (Decarbonization Recommendation)</h2>
-                                <p className="text-slate-500 mt-2">根據您的製程提供專業的減碳建議與參考文獻</p>
+                        {current && (
+                            <div className="mt-10 flex justify-between">
+                                <button type="button" disabled={idx <= 0} onClick={() => select(FORM_SECTIONS[idx - 1].id)}
+                                    className="pressable rounded-full px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-500/10 disabled:invisible">
+                                    ← {idx > 0 ? (lang === 'zh' ? FORM_SECTIONS[idx - 1].zh : FORM_SECTIONS[idx - 1].en) : ''}
+                                </button>
+                                <button type="button" onClick={() => select(idx < FORM_SECTIONS.length - 1 ? FORM_SECTIONS[idx + 1].id : 'Export')}
+                                    className="pressable rounded-full bg-indigo-500 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-600">
+                                    {idx < FORM_SECTIONS.length - 1 ? (lang === 'zh' ? FORM_SECTIONS[idx + 1].zh : FORM_SECTIONS[idx + 1].en) : t('匯出申報表', 'Export')} →
+                                </button>
                             </div>
-                            <DecarbonizationEngine />
-                        </section>
-
-                        {/* Step 3: Carbon Emission Tool */}
-                        <section className="max-w-5xl mx-auto mt-16">
-                            <div className="mb-8 flex flex-col items-center text-center">
-                                <h2 className="text-2xl font-bold text-slate-800 uppercase tracking-tight">STEP 3: 碳排情境分析工具 (Carbon Emission Tool)</h2>
-                                <p className="text-slate-500 mt-2">模擬不同減碳情境下的成本節省與減排效果</p>
-                            </div>
-                            <CarbonEmissionTool />
-                        </section>
-                    </div>
-                ) : (
-                    <div className="animate-slideIn">
-                        <button 
-                            onClick={handleBackToMenu}
-                            className="mb-4 flex items-center text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                        >
-                            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                            Back to Menu (返回選單)
-                        </button>
-
-                        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-                            {activeSection === 'A' && <A_InstDataSection data={formData.a_instData} setData={updateA_InstData} />}
-                            {activeSection === 'B' && <B_EmInstSection data={formData.b_emInst} setData={updateB_EmInst} />}
-                            {activeSection === 'C' && <C_EmissionsEnergySection data={formData.c_emissionsEnergy} setData={updateC_EmissionsEnergy} />}
-                            {activeSection === 'D' && <D_ProcessesSection data={formData.d_processes} setData={updateD_Processes} e83Rows={formData.a_instData.e83} e62Rows={formData.a_instData.e62} />}
-                            {activeSection === 'E' && <E_PurchPrecSection data={formData.e_purchPrec} setData={updateE_PurchPrec} e83Rows={formData.a_instData.e83} e102Rows={formData.a_instData.e102} />}
-                            {activeSection === 'SumProc' && <Summary_ProcessSection data={formData.summary_process} setData={updateSummary_Process} />}
-                            {activeSection === 'SumProd' && <Summary_ProductsSection data={formData.summary_products} setData={updateSummary_Products} e83Rows={formData.a_instData.e83} />}
-                        </div>
-                    </div>
-                )}
-
-                <div className="mt-8 text-center">
-                    <button onClick={generateJson} className="text-slate-400 hover:text-slate-600 text-sm underline">
-                        Debug: Show JSON Data
-                    </button>
-                    {isOutputVisible && (
-                        <div id="output-container" className="mt-6 bg-slate-800 rounded-lg p-4 text-left mx-auto max-w-4xl" aria-live="polite">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-lg font-semibold text-slate-200">JSON Output</h3>
-                                <button id="copy-btn" onClick={copyToClipboard} className="bg-slate-600 text-slate-200 px-3 py-1 rounded-md text-sm hover:bg-slate-500">Copy</button>
-                            </div>
-                            <pre><code id="json-output" className="text-sm text-green-300 whitespace-pre-wrap break-all">{jsonOutput}</code></pre>
-                        </div>
-                    )}
+                        )}
+                    </main>
                 </div>
-            </main>
-        </div>
+            </div>
+        </UndoContext.Provider>
     );
 };
+
+const App: React.FC = () => (
+    <PrefsProvider>
+        <ToastProvider>
+            <MotionConfig reducedMotion="user">
+                <Shell />
+            </MotionConfig>
+        </ToastProvider>
+    </PrefsProvider>
+);
 
 export default App;

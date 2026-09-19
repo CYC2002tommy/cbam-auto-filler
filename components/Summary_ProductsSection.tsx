@@ -1,18 +1,22 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Boxes, Plus, Trash2 } from 'lucide-react';
 import type { Summary_Product, KeyValue } from '../types';
-import { 
+import {
     SUMMARY_PRODUCTS_FIELD_TITLES,
+    SUMMARY_PRODUCTS_COLUMN_MAP,
     CP_INSTRUMENT_OPTIONS,
     CP_REBATE_TYPE_OPTIONS,
     AC_OPTIONS,
     CURRENCY_OPTIONS,
     PARAM_REDUCING_AGENT_OPTIONS,
     FULL_CN_CODE_MAP,
-    CN_CODE_DESCRIPTIONS
+    CN_CODE_DESCRIPTIONS,
 } from '../constants';
-import CollapsibleSection from './CollapsibleSection';
 import { TextInput, SelectInput, SearchableSelect } from './FormControls';
+import { Heading, Group } from './Layout';
+import { CAPS } from '../ui/rows';
+import { useT, useLabel } from '../ui/prefs';
+import { useUndo } from '../ui/undo';
 
 interface Props {
     data: Summary_Product[];
@@ -20,260 +24,161 @@ interface Props {
     e83Rows: KeyValue[];
 }
 
+/** Product parameters by sector (Summary_Products columns P–AK). None is forced; the template's own checks decide. */
+const SECTOR_PARAMS: { match: string[]; keys: string[] }[] = [
+    {
+        match: ['iron or steel products', 'crude steel', 'pig iron', 'direct reduced iron', 'alloys', 'sintered ore'],
+        keys: ['param_reducing_agent', 'param_steel_mill_id', 'param_mn', 'param_cr', 'param_ni', 'param_other_alloys', 'param_carbon', 'param_scrap_steel', 'param_other_mat', 'param_pre_scrap'],
+    },
+    { match: ['aluminium products', 'unwrought aluminium'], keys: ['param_scrap_alu', 'param_pre_scrap', 'param_non_alu'] },
+    { match: ['cement', 'cement clinker', 'calcined clays', 'aluminous cement'], keys: ['param_clinker', 'param_calcined'] },
+    {
+        match: ['ammonia', 'nitric acid', 'urea', 'mixed fertilisers'],
+        keys: ['param_conc', 'param_nitric_acid', 'param_urea', 'param_n_total', 'param_n_nh4', 'param_n_no3', 'param_n_urea', 'param_n_other'],
+    },
+];
+
+const CP_KEYS = ['cp_instrument', 'cp_share', 'cp_currency', 'cp_price_due', 'cp_rebate_type', 'cp_rebate_share', 'cp_rebate_amount'];
+
+/** Titles in constants carry a column prefix ("R: % Mn (…)"); the column now shows as a field code instead. */
+const TITLE_FIX: Record<string, string> = {
+    process: 'Production process (所屬生產過程)',
+    cn_code: 'CN code (CN 稅則號)',
+    name: 'Product name (產品名稱)',
+    cp_price_due: 'Carbon price due (應付碳價)',
+    cp_rebate_type: 'Type of rebate or compensation (退還或補償類型)',
+    cp_rebate_share: 'Share covered by the rebate (退還涵蓋比例)',
+    cp_rebate_amount: 'Amount of the rebate (退還金額)',
+};
+const titleOf = (key: string) => TITLE_FIX[key] ?? (SUMMARY_PRODUCTS_FIELD_TITLES[key] ?? key).replace(/^[A-Z]{1,2}:\s*/, '');
+
 const Summary_ProductsSection: React.FC<Props> = ({ data, setData, e83Rows }) => {
-    const [selectedPIndex, setSelectedPIndex] = useState<string>('');
+    const t = useT();
+    const label = useLabel();
+    const captureUndo = useUndo();
+    const [selected, setSelected] = useState(0);
+    const cap = CAPS['summary.products'];
 
-    // Options for the product selector dropdown
-    const itemSelectorOptions = e83Rows.map((row, index) => {
-        const cat = row.e as string;
-        const name = row.l as string;
-        if ((!cat || cat === 'n.a.') && !name) return null;
-        return { value: index.toString(), label: `P${index + 1}: ${cat || 'Unknown'} - ${name || '(No Name)'}` };
-    }).filter(item => item !== null) as { value: string, label: string }[];
-
-    // Dynamic options for the "Process Name" field inside the form
-    const processNameOptions = [
-        ...e83Rows
-            .map((row, index) => {
-                const cat = row.e as string;
-                const name = row.l as string;
-                if (!cat || cat === 'n.a.') return null;
-                const label = name ? name : `P${index + 1} - ${cat}`;
-                return { value: label, label: label };
-            })
-            .filter(opt => opt !== null) as { value: string, label: string }[],
-        { value: 'n.a.', label: 'n.a.' }
-    ];
+    // The template's process list is the names entered in A_InstData 4(b).
+    const processes = e83Rows
+        .map((row, i) => ({ id: `P${i + 1}`, name: (row.l as string) || '', category: (row.e as string) || '' }))
+        .filter(p => p.category && p.category !== 'n.a.');
 
     useEffect(() => {
-        if (selectedPIndex === '' && itemSelectorOptions.length > 0) {
-            setSelectedPIndex(itemSelectorOptions[0].value);
+        if (selected >= data.length && data.length) setSelected(data.length - 1);
+    }, [data.length, selected]);
+
+    const product = data[selected];
+    const processOf = (p?: Summary_Product) => processes.find(x => x.name && x.name === p?.process);
+    const category = (processOf(product)?.category ?? '').trim().toLowerCase();
+    const paramKeys = SECTOR_PARAMS.find(s => s.match.includes(category))?.keys ?? [];
+    const cnOptions = (FULL_CN_CODE_MAP[category] || []).map(code => ({ value: code, label: CN_CODE_DESCRIPTIONS[code] ? `${code} – ${CN_CODE_DESCRIPTIONS[code]}` : code }));
+    const rowOf = selected + 10;
+
+    const update = (field: string, value: string | number) => {
+        const next = [...data];
+        next[selected] = { ...next[selected], [field]: value };
+        setData(next);
+    };
+    const add = () => {
+        const first = processes.find(p => p.name);
+        setData([...data, { process: first?.name ?? '' }]);
+        setSelected(data.length);
+    };
+    const remove = () => {
+        captureUndo(t(`已刪除產品 ${selected + 1}`, `Deleted product ${selected + 1}`));
+        setData(data.filter((_, i) => i !== selected));
+        setSelected(Math.max(0, selected - 1));
+    };
+
+    const field = (key: string) => {
+        const title = titleOf(key);
+        const code = `${SUMMARY_PRODUCTS_COLUMN_MAP[key]}${rowOf}`;
+        const value = (product?.[key] as string) ?? '';
+        const id = `prod-${key}`;
+        switch (key) {
+            case 'param_calcined': return <SelectInput key={key} label={title} code={code} id={id} options={AC_OPTIONS} value={value} onChange={e => update(key, e.target.value)} />;
+            case 'param_reducing_agent': return <SelectInput key={key} label={title} code={code} id={id} options={PARAM_REDUCING_AGENT_OPTIONS} value={value} onChange={e => update(key, e.target.value)} />;
+            case 'cp_instrument': return <SelectInput key={key} label={title} code={code} id={id} options={CP_INSTRUMENT_OPTIONS} value={value} onChange={e => update(key, e.target.value)} />;
+            case 'cp_rebate_type': return <SelectInput key={key} label={title} code={code} id={id} options={CP_REBATE_TYPE_OPTIONS} value={value} onChange={e => update(key, e.target.value)} />;
+            case 'cp_currency': return <SearchableSelect key={key} label={title} code={code} id={id} options={CURRENCY_OPTIONS} value={value} onChange={v => update(key, v)} />;
+            default: {
+                const textual = key.includes('id') || key.includes('reducing');
+                const pct = /(^|_)(mn|cr|ni|other_alloys|carbon|other_mat|pre_scrap|non_alu|nitric_acid|urea|n_total|n_nh4|n_no3|n_urea|n_other|share|rebate_share)$/.test(key);
+                return <TextInput key={key} label={title} code={code} id={id} type={textual ? 'text' : 'number'} unit={pct ? '%' : undefined} value={value} onChange={e => update(key, e.target.value)} />;
+            }
         }
-    }, [itemSelectorOptions.length, selectedPIndex]);
+    };
 
-    const currentPIndex = parseInt(selectedPIndex);
-    const isValidSelection = !isNaN(currentPIndex) && e83Rows[currentPIndex];
-    const currentE83 = isValidSelection ? e83Rows[currentPIndex] : null;
-    const currentProductData = isValidSelection && data[currentPIndex] ? data[currentPIndex] : {};
-
-    // Determine category based on the selected process name in the form
-    const selectedProcessName = currentProductData.process as string;
-    let effectiveCategory = 'n.a.';
-    if (selectedProcessName && selectedProcessName !== 'n.a.') {
-        const matchingRow = e83Rows.find((row, index) => {
-            const cat = row.e as string;
-            const name = row.l as string;
-            const label = name ? name : `P${index + 1} - ${cat}`;
-            return label === selectedProcessName;
-        });
-        if (matchingRow && matchingRow.e) effectiveCategory = matchingRow.e as string;
-    } else if (currentE83 && currentE83.e) {
-        effectiveCategory = currentE83.e as string;
+    if (!processes.length) {
+        return (
+            <Group className="flex flex-col items-center py-12 text-center">
+                <Boxes size={36} className="mb-3 text-slate-400" strokeWidth={1.5} />
+                <p className="font-semibold text-slate-800">{t('還沒有生產過程', 'No production processes yet')}</p>
+                <p className="mt-1 max-w-md text-sm text-slate-500">{t('產品要掛在生產過程底下。先到「設施資訊」的 4(b) 新增生產過程並取名。', 'Each product belongs to a production process. Add and name one under Installation → 4(b) first.')}</p>
+            </Group>
+        );
     }
 
-    // Prepare CN Code Options based on Category
-    const categoryLower = effectiveCategory.toLowerCase();
-    const availableCodes = FULL_CN_CODE_MAP[categoryLower] || [];
-    const cnCodeOptions = availableCodes.map(code => {
-        const desc = CN_CODE_DESCRIPTIONS[code];
-        return {
-            value: code,
-            label: desc ? `${code} - ${desc}` : code
-        };
-    });
-
-    useEffect(() => {
-        if (isValidSelection && currentE83) {
-            const updates: Partial<Summary_Product> = {};
-            let hasUpdates = false;
-            if (!currentProductData.process) {
-                const cat = currentE83.e as string;
-                const name = currentE83.l as string;
-                updates.process = name ? name : `P${currentPIndex + 1} - ${cat}`;
-                hasUpdates = true;
-            }
-            if (!currentProductData.name && currentE83.l) {
-                updates.name = currentE83.l as string;
-                hasUpdates = true;
-            }
-            if (hasUpdates) {
-                const newData = [...data];
-                while (newData.length <= currentPIndex) newData.push({});
-                newData[currentPIndex] = { ...newData[currentPIndex], ...updates };
-                setData(newData);
-            }
-        }
-    }, [currentPIndex, currentE83, isValidSelection, currentProductData.process, currentProductData.name, data, setData]);
-
-    const handleFieldChange = (field: string, value: string | number) => {
-        if (isValidSelection) {
-            const newData = [...data];
-            while (newData.length <= currentPIndex) newData.push({});
-            newData[currentPIndex] = { ...newData[currentPIndex], [field]: value };
-            setData(newData);
-        }
-    };
-
-    const getRequiredParams = (sec: string): string[] => {
-        const sectorLower = (sec || '').toLowerCase();
-        let required: string[] = [];
-
-        // Parameter Groups
-        // AB to AK
-        const range_ab_ak = [
-            'param_clinker', 'param_calcined', 'param_conc', 'param_nitric_acid', 
-            'param_urea', 'param_n_total', 'param_n_nh4', 'param_n_no3', 
-            'param_n_urea', 'param_n_other'
-        ];
-        // AH to AK
-        const range_ah_ak = ['param_n_nh4', 'param_n_no3', 'param_n_urea', 'param_n_other'];
-
-        // 1. Fertilisers
-        if (sectorLower.includes("ammonia")) {
-            required.push('param_conc'); // AD
-        } else if (sectorLower.includes("urea")) {
-            required.push('param_urea', 'param_n_total'); // AF, AG
-        } else if (sectorLower.includes("nitric acid")) {
-            required.push('param_nitric_acid'); // AE
-        } else if (sectorLower.includes("mixed fertilisers")) {
-            required.push(...range_ah_ak); // AH-AK
-        } 
-        // 2. Cement
-        else if (sectorLower.includes("cement clinker")) {
-             required.push('param_clinker'); // AB
-        } else if (sectorLower.includes("calcined clays")) {
-             required.push('param_reducing_agent', 'param_steel_mill_id', ...range_ab_ak); // P, Q, AB-AK
-        }
-        // 3. Iron & Steel
-        else if (sectorLower.includes("iron or steel products")) {
-            required.push('param_reducing_agent', 'param_steel_mill_id'); // P, Q
-        } else if (sectorLower.includes("crude steel")) {
-             required.push('param_reducing_agent'); // P
-        } else if (sectorLower.includes("direct reduced iron")) {
-             required.push('param_reducing_agent'); // P
-        } else if (sectorLower.includes("alloys")) {
-             required.push('param_reducing_agent'); // P
-        }
-
-        return required;
-    };
-
-    const requiredFields = getRequiredParams(effectiveCategory);
-    const cpKeys = Object.keys(SUMMARY_PRODUCTS_FIELD_TITLES).filter(k => k.startsWith('cp_'));
-
-    const renderInput = (key: string) => {
-        const label = SUMMARY_PRODUCTS_FIELD_TITLES[key];
-        const isRequired = requiredFields.includes(key);
-
-        // Special input: CN Code (Searchable dropdown)
-        if (key === 'cn_code') {
-             return (
-                <div key={key}>
-                     <SearchableSelect 
-                         label={label}
-                         id={`prod-${key}`} 
-                         options={cnCodeOptions} 
-                         value={currentProductData[key] as string || ''} 
-                         onChange={val => handleFieldChange(key, val)} 
-                         required={isRequired}
-                         placeholder={cnCodeOptions.length > 0 ? "--- Please Select (請選擇) ---" : "No codes found for this category"}
-                     />
-                </div>
-            );
-        }
-
-        // Other special inputs
-        if (key === 'param_calcined') return <SelectInput key={key} label={label} id={`prod-${key}`} options={AC_OPTIONS} value={currentProductData[key] as string || ''} onChange={e => handleFieldChange(key, e.target.value)} required={isRequired} />;
-        if (key === 'param_reducing_agent') return <SelectInput key={key} label={label} id={`prod-${key}`} options={PARAM_REDUCING_AGENT_OPTIONS} value={currentProductData[key] as string || ''} onChange={e => handleFieldChange(key, e.target.value)} required={isRequired} />;
-        if (key === 'param_reducing_agent') return <SelectInput key={key} label={label} id={`prod-${key}`} options={PARAM_REDUCING_AGENT_OPTIONS} value={currentProductData[key] as string || ''} onChange={e => handleFieldChange(key, e.target.value)} required={isRequired} />;
-        if (key === 'cp_instrument') return <SelectInput key={key} label={label} id={`prod-${key}`} options={CP_INSTRUMENT_OPTIONS} value={currentProductData[key] as string || ''} onChange={e => handleFieldChange(key, e.target.value)} required={isRequired} />;
-        if (key === 'cp_rebate_type') return <SelectInput key={key} label={label} id={`prod-${key}`} options={CP_REBATE_TYPE_OPTIONS} value={currentProductData[key] as string || ''} onChange={e => handleFieldChange(key, e.target.value)} required={isRequired} />;
-        if (key === 'cp_currency') return <SearchableSelect key={key} label={label} id={`prod-${key}`} options={CURRENCY_OPTIONS} value={currentProductData[key] as string || ''} onChange={val => handleFieldChange(key, val)} required={isRequired} />;
-        
-        // Default text/number input
-        return <TextInput key={key} label={label} id={`prod-${key}`} type={key.includes('id') || key.includes('reducing') ? 'text' : 'number'} value={currentProductData[key] as string || ''} onChange={e => handleFieldChange(key, e.target.value)} required={isRequired} />;
-    };
-
     return (
-        <CollapsibleSection title="Summary_Products: Product information for report (產品報告資訊)" noCollapse={true}>
-            <div className="space-y-6">
-                {itemSelectorOptions.length > 0 ? (
-                    <div className="space-y-6 animate-fadeIn">
-                        <SelectInput 
-                            label="Select Product to Edit (選擇編輯產品)" 
-                            id="product-selector" 
-                            options={itemSelectorOptions} 
-                            value={selectedPIndex} 
-                            includeEmpty={false} 
-                            onChange={e => setSelectedPIndex(e.target.value)} 
-                        />
-                        {isValidSelection && (
-                             <div className="p-4 border border-indigo-200 rounded-lg bg-indigo-50/50 animate-fadeIn space-y-6">
-                                <h3 className="text-xl font-bold text-indigo-800">P{currentPIndex + 1}: <span className="text-indigo-600">{currentProductData.name || '(No Name)'}</span></h3>
-                                
-                                {/* Step 1: Essential Information */}
-                                <div className="bg-white rounded-lg shadow-sm border border-slate-200">
-                                    <div className="bg-slate-50 p-3 rounded-t-lg border-b border-slate-200">
-                                        <h4 className="text-lg font-semibold text-slate-600">Step 1: Essential Information (核心產品資訊)</h4>
-                                    </div>
-                                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <SelectInput 
-                                            label={SUMMARY_PRODUCTS_FIELD_TITLES['process']}
-                                            id="prod-process" 
-                                            options={processNameOptions} 
-                                            value={currentProductData.process as string || ''} 
-                                            onChange={e => handleFieldChange('process', e.target.value)} 
-                                            required 
-                                        />
-                                        
-                                        {renderInput('cn_code')}
-
-                                        <div className="md:col-span-2">
-                                            <TextInput 
-                                                label={SUMMARY_PRODUCTS_FIELD_TITLES['name']}
-                                                id="prod-name" 
-                                                value={currentProductData.name as string || ''} 
-                                                onChange={e => handleFieldChange('name', e.target.value)} 
-                                                required 
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Step 2: Required Parameters based on Sector */}
-                                {requiredFields.length > 0 ? (
-                                    <div className="bg-emerald-50 rounded-lg shadow-sm border border-emerald-200">
-                                        <div className="bg-emerald-100 p-3 rounded-t-lg border-b border-emerald-200">
-                                            <h4 className="text-lg font-semibold text-emerald-800 font-bold">Step 2: Required Parameters (必填參數)</h4>
-                                        </div>
-                                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {requiredFields.map(key => renderInput(key))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="p-4 bg-yellow-50 text-yellow-800 rounded border border-yellow-200">
-                                        No specific parameters required for this category. (此類別無特定需填寫的額外參數)
-                                    </div>
-                                )}
-
-                                {/* Step 3: Carbon Pricing */}
-                                <div className="bg-white rounded-lg shadow-sm border border-slate-200">
-                                    <div className="bg-slate-50 p-3 rounded-t-lg border-b border-slate-200">
-                                        <h4 className="text-lg font-semibold text-slate-600">Step 3: Carbon Pricing (碳定價資訊 - 選填)</h4>
-                                    </div>
-                                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {cpKeys.map(key => renderInput(key))}
-                                    </div>
-                                </div>
-
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                     <p className="text-slate-500 italic mt-4">Please define processes in A_InstData first. (請先在 A_InstData 中定義生產過程。)</p>
-                )}
+        <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label={t('產品', 'Products')}>
+                {data.map((p, i) => (
+                    <button key={i} type="button" role="tab" aria-selected={i === selected} onClick={() => setSelected(i)}
+                        className={`pressable rounded-full px-4 py-1.5 text-sm font-medium ${i === selected ? 'bg-slate-900 text-white' : 'bg-slate-900/5 text-slate-700 hover:bg-slate-900/10'}`}>
+                        {(p.name as string) || t(`產品 ${i + 1}`, `Product ${i + 1}`)}
+                    </button>
+                ))}
+                <button type="button" onClick={add} disabled={data.length >= cap}
+                    className="pressable inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-500/10 disabled:opacity-40"
+                    title={data.length >= cap ? t(`已達官方範本上限 ${cap} 項`, `Official template holds ${cap} products`) : undefined}>
+                    <Plus size={15} /> {t('新增產品', 'Add product')}
+                </button>
             </div>
-        </CollapsibleSection>
+
+            {!product ? (
+                <Group className="py-10 text-center text-sm text-slate-500">
+                    {t('按「新增產品」為每個出口的 CBAM 產品（每個 CN 稅則號）建一筆資料。', 'Use “Add product” for each CBAM good you export (one per CN code).')}
+                </Group>
+            ) : (
+                <>
+                    <Group>
+                        <div className="flex items-start justify-between gap-4">
+                            <Heading label="Product (產品)" note={label('One entry per CN code you export. Several products can belong to the same production process. (每個出口的 CN 稅則號一筆；同一個生產過程可以有多個產品。)')} />
+                            <button type="button" onClick={remove} className="pressable rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500" aria-label={t('刪除這個產品', 'Delete this product')}>
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <SelectInput label={titleOf('process')} code={`D${rowOf}`} id="prod-process" required
+                                options={processes.filter(p => p.name).map(p => ({ value: p.name, label: `${p.id} · ${p.name}` }))}
+                                value={(product.process as string) || ''} onChange={e => update('process', e.target.value)} />
+                            <SearchableSelect label={titleOf('cn_code')} code={`F${rowOf}`} id="prod-cn_code" required options={cnOptions}
+                                value={(product.cn_code as string) || ''} onChange={v => update('cn_code', v)}
+                                placeholder={cnOptions.length ? undefined : t('先選擇生產過程', 'Choose the process first')} />
+                            <div className="md:col-span-2">
+                                <TextInput label={titleOf('name')} code={`H${rowOf}`} id="prod-name" required value={(product.name as string) || ''} onChange={e => update('name', e.target.value)} />
+                            </div>
+                        </div>
+                        {processes.some(p => !p.name) && (
+                            <p className="mt-3 text-xs text-amber-600">{t('提醒：沒有名稱的生產過程無法被選取，請先到「設施資訊」4(b) 為它取名。', 'A process without a name cannot be picked; name it under Installation → 4(b).')}</p>
+                        )}
+                    </Group>
+
+                    {paramKeys.length > 0 && (
+                        <Group>
+                            <Heading label="Product parameters (產品參數)" note={label('Reported to the importer with the product; leave blank what you do not know. (隨產品一併提供給進口商；不知道的可以留白。)')} />
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">{paramKeys.map(field)}</div>
+                        </Group>
+                    )}
+
+                    <Group>
+                        <Heading label="Carbon price paid in Taiwan (optional) (在台灣已付的碳價，選填)" note={label('For example the carbon fee paid to the Ministry of Environment. (例如繳給環境部的碳費。)')} />
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">{CP_KEYS.map(field)}</div>
+                    </Group>
+                </>
+            )}
+        </div>
     );
 };
 

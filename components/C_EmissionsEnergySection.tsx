@@ -1,91 +1,47 @@
-
 import React from 'react';
 import type { C_EmissionsEnergy } from '../types';
 import { H40_OPTIONS, H41_OPTIONS, H42_OPTIONS } from '../constants';
-import CollapsibleSection from './CollapsibleSection';
 import { TextInput, SelectInput } from './FormControls';
+import { Heading, Group } from './Layout';
+import { useLabel } from '../ui/prefs';
 
 interface Props {
     data: C_EmissionsEnergy;
     setData: (data: C_EmissionsEnergy) => void;
 }
 
-interface StaticSubSectionProps {
-    title: string;
-    children: React.ReactNode;
-}
-
-// Helper component for static sub-sections (no collapsing)
-const StaticSubSection: React.FC<StaticSubSectionProps> = ({ title, children }) => (
-    <div className="mt-4">
-        <div className="bg-slate-50 p-3 rounded-t-md border border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-slate-600">{title}</h2>
-        </div>
-        <div className="bg-white p-6 rounded-b-lg shadow-sm border border-t-0 border-slate-200">
-            {children}
-        </div>
-    </div>
-);
-
 const C_EmissionsEnergySection: React.FC<Props> = ({ data, setData }) => {
+    const label = useLabel();
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setData({ ...data, [e.target.id]: e.target.value });
     };
 
-    // Conditional check for H41 visibility
-    // H41 is required only if H40 is "Mostly default values provided by the European Commission"
-    const showJustification = data.H40 === "Mostly default values provided by the European Commission";
+    // H41 applies only when the operator relies mostly on Commission default values.
+    const showJustification = data.H40 === 'Mostly default values provided by the European Commission';
 
     return (
-        <CollapsibleSection title="C_Emissions&Energy: Installation-level GHG emissions and energy consumption" noCollapse={true}>
-            <div className="space-y-6">
-                <StaticSubSection title="(a) GHG balance by type of GHG (溫室氣體平衡)">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <TextInput 
-                            label="Manual entries Total indirect emissions (手動輸入總間接排放量)" 
-                            id="M26" 
-                            type="text" 
-                            required 
-                            value={data.M26 as string || ''} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                </StaticSubSection>
+        <div className="space-y-8">
+            <Group>
+                <Heading
+                    label="(a) GHG balance (溫室氣體平衡)"
+                    note={label('For iron, steel, aluminium and hydrogen, indirect (electricity) emissions are not counted in the definitive period (Guidance 5D). (鋼鐵、鋁、氫在正式期不計入電力間接排放，依歐盟指引 5D。)')}
+                />
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <TextInput label="Total indirect emissions, manual entry (間接排放總量，手動輸入)" id="M26" type="number" unit="tCO₂e" value={data.M26 as string || ''} onChange={handleChange} />
+                </div>
+            </Group>
 
-                <StaticSubSection title="(c) Information on the data quality and quality assurance (數據品質與品質保證資訊)">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <SelectInput 
-                            label="General information on data quality (數據品質一般資訊)" 
-                            id="H40" 
-                            options={H40_OPTIONS} 
-                            required 
-                            value={data.H40 as string || ''} 
-                            onChange={handleChange} 
-                        />
-                        
-                        {showJustification && (
-                            <SelectInput 
-                                label="Justification for use of default values (使用預設值的理由)" 
-                                id="H41" 
-                                options={H41_OPTIONS} 
-                                required 
-                                value={data.H41 as string || ''} 
-                                onChange={handleChange} 
-                            />
-                        )}
-                        
-                        <SelectInput 
-                            label="Information on quality assurance (品質保證資訊)" 
-                            id="H42" 
-                            options={H42_OPTIONS} 
-                            required 
-                            value={data.H42 as string || ''} 
-                            onChange={handleChange} 
-                        />
-                    </div>
-                </StaticSubSection>
-            </div>
-        </CollapsibleSection>
+            <Group>
+                <Heading label="(c) Data quality and quality assurance (數據品質與品質保證)" />
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <SelectInput label="General information on data quality (數據品質概述)" id="H40" options={H40_OPTIONS} required value={data.H40 as string || ''} onChange={handleChange} />
+                    {showJustification && (
+                        <SelectInput label="Justification for using default values (使用預設值的理由)" id="H41" options={H41_OPTIONS} required value={data.H41 as string || ''} onChange={handleChange} />
+                    )}
+                    <SelectInput label="Quality assurance (品質保證方式)" id="H42" options={H42_OPTIONS} required value={data.H42 as string || ''} onChange={handleChange} />
+                </div>
+            </Group>
+        </div>
     );
 };
 

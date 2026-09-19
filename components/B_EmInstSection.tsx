@@ -1,19 +1,46 @@
-
 import React, { useState } from 'react';
+import { Search } from 'lucide-react';
 import type { B_EmInst, KeyValue } from '../types';
 import { D17_OPTIONS_METHOD, D17_OPTIONS_G_UNIT, D17_OPTIONS_K_EF_UNIT, D98_OPTIONS_PFC, D113_E_OPTIONS } from '../constants';
 import CollapsibleSection from './CollapsibleSection';
-import { TextInput, SelectInput, Button } from './FormControls';
+import { TextInput, SelectInput } from './FormControls';
+import { Heading } from './Layout';
 import EFDefaultsSearchModal from './EFDefaultsSearchModal';
+import type { FuelDefault } from '../data/fuels';
+import { SwipeRow, AddRowButton, CAPS } from '../ui/rows';
+import { useT, useLabel } from '../ui/prefs';
+import { useUndo } from '../ui/undo';
 
 interface Props {
     data: B_EmInst;
     setData: (data: B_EmInst) => void;
 }
 
+/*
+ * PFC inputs are only the template's unlocked cells in rows 98–107 (checked with
+ * tools/inspect_rows.py). AN–AS and AU are formulas and must never be written.
+ */
+const PFC_SLOPE = [
+    { col: 'ag', label: 'Anode effect frequency (A: Frequency) (陽極效應頻率)' },
+    { col: 'ah', label: 'Anode effect duration (A: Duration) (陽極效應持續時間)' },
+    { col: 'ai', label: 'Slope emission factor for CF4 (A: SEF(CF4)) (CF4 斜率排放係數)' },
+];
+const PFC_OVERVOLTAGE = [
+    { col: 'aj', label: 'Anode effect overvoltage (B: AEO) (陽極效應過電壓)' },
+    { col: 'ak', label: 'Current efficiency (B: CE) (電流效率)' },
+    { col: 'al', label: 'Overvoltage coefficient (B: OVC) (過電壓係數)' },
+];
+const PFC_COMMON = [
+    { col: 'am', label: 'Weight fraction of C2F6 (F(C2F6)) (C2F6 重量分率)' },
+    { col: 'at', label: 'Collection efficiency (收集效率)', unit: '%' },
+];
+
 const B_EmInstSection: React.FC<Props> = ({ data, setData }) => {
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [currentRowIndex, setCurrentRowIndex] = useState<number | null>(null);
+    const t = useT();
+    const label = useLabel();
+    const captureUndo = useUndo();
 
     const handleDynamicChange = <T extends keyof B_EmInst,>(section: T, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -26,226 +53,118 @@ const B_EmInstSection: React.FC<Props> = ({ data, setData }) => {
         setData({ ...data, [section]: [...(data[section] as KeyValue[]), {}] });
     };
 
-    const removeRow = <T extends keyof B_EmInst,>(section: T, index: number) => {
-        const updatedSection = (data[section] as KeyValue[]).filter((_, i) => i !== index);
-        setData({ ...data, [section]: updatedSection });
+    const removeRow = <T extends keyof B_EmInst,>(section: T, index: number, what: string) => {
+        captureUndo(t(`已刪除${what}`, `Deleted ${what}`));
+        setData({ ...data, [section]: (data[section] as KeyValue[]).filter((_, i) => i !== index) });
     };
 
-    const openSearchModal = (index: number) => {
-        setCurrentRowIndex(index);
-        setIsSearchModalOpen(true);
-    };
-
-    const handleDefaultSelect = (code: string, description: string, value: number) => {
-        if (currentRowIndex !== null) {
-            const updatedD17 = [...data.d17];
-            const currentItem = updatedD17[currentRowIndex] || {};
-            
-            updatedD17[currentRowIndex] = {
-                ...currentItem,
-                e: description || code, // Source stream name
-                j: value, // Emission factor
-                k: 'tCO2/t' // Unit default
-            };
-            
-            setData({ ...data, d17: updatedD17 });
-        }
+    const applyFuel = (fuel: FuelDefault) => {
+        if (currentRowIndex === null) return;
+        const d17 = [...data.d17];
+        d17[currentRowIndex] = { ...d17[currentRowIndex], e: fuel.en, h: String(fuel.ncv), j: String(fuel.ef), k: 'tCO2/TJ', g: d17[currentRowIndex]?.g || 't' };
+        setData({ ...data, d17 });
     };
 
     return (
-        <CollapsibleSection title="B_EmInst: Installation's emission at source stream and emission source level" noCollapse={true}>
-            <div className="space-y-6">
-                <div>
-                    <h3 className="text-lg font-semibold text-slate-600 mb-4">(a) Calculation based approaches: Source Streams (excluding PFC emissions)</h3>
-                    <div className="bg-white p-6 rounded-lg shadow-md border border-slate-200 space-y-4">
-                        {data.d17.map((row, index) => {
-                             const method = row.d as string;
-                             const isMassBalance = method === 'Mass Balance';
-                             const isCombustion = method === 'Combustion';
-                             const isProcessEmissions = method === 'Process emissions';
-
-                             // Visibility Logic:
-                             // Mass Balance: Hide EF (J, K). Show Carbon Content (L, M) as required in top section.
-                             // Process emissions: Hide Carbon Content (L, M), Oxidation (N). Show EF (J, K).
-                             // Combustion: Hide Carbon Content (L, M), Conversion (P). Show EF (J, K).
-                             
-                             const showEF_Top = !isMassBalance; // J, K (Shown for Combustion & Process)
-                             const showCarbonContent_Top = isMassBalance; // L, M (Shown for Mass Balance, now top)
-                             
-                             // Bottom section optional fields
-                             const showOxidationFactor = isCombustion; // N
-                             const showConversionFactor = isProcessEmissions; // P
-                             
-                             // Only show search button if method is Combustion
-                             const showSearchButton = isCombustion;
-
-                             return (
-                                <div key={index} className="p-4 rounded-lg border border-slate-200 bg-slate-50 animate-fadeIn">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div className="lg:col-span-4 flex justify-between items-center mb-2">
-                                             <span className="font-semibold text-slate-700">Source Stream #{index + 1}</span>
-                                            <Button variant="remove" onClick={() => removeRow('d17', index)} aria-label="Remove D17 item" />
-                                        </div>
-                                        
-                                        {/* Required Fields Group */}
-                                        <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
-                                            <SelectInput label="Method (方法)" id={`d17-d-${index}`} name="d" options={D17_OPTIONS_METHOD} required value={row.d as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                            
-                                            <div className="relative">
-                                                <TextInput 
-                                                    label="Source stream name (來源流名稱)" 
-                                                    id={`d17-e-${index}`} 
-                                                    name="e" 
-                                                    type="text" 
-                                                    required 
-                                                    value={row.e as string || ''} 
-                                                    onChange={e => handleDynamicChange('d17', index, e)} 
-                                                />
-                                                {showSearchButton && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => openSearchModal(index)}
-                                                        className="absolute top-0 right-0 mt-7 mr-2 text-indigo-600 hover:text-indigo-800"
-                                                        title="Search Default Value (搜尋預設值)"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                        </svg>
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            <TextInput label="Activity data (AD) (活動數據)" id={`d17-f-${index}`} name="f" type="number" required value={row.f as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                            <SelectInput label="AD Unit (單位)" id={`d17-g-${index}`} name="g" options={D17_OPTIONS_G_UNIT} required value={row.g as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                            <TextInput 
-                                                label="Net calorific value (NCV) (淨熱值)" 
-                                                id={`d17-h-${index}`} 
-                                                name="h" 
-                                                type="number" 
-                                                required={!isProcessEmissions && !isMassBalance} 
-                                                value={row.h as string || ''} 
-                                                onChange={e => handleDynamicChange('d17', index, e)} 
-                                            />
-                                            
-                                            {showEF_Top && (
-                                                <>
-                                                    <div className="relative">
-                                                        <TextInput 
-                                                            label="Emission factor (EF) (排放因子)" 
-                                                            id={`d17-j-${index}`} 
-                                                            name="j" 
-                                                            type="number" 
-                                                            required 
-                                                            value={row.j as string || ''} 
-                                                            onChange={e => handleDynamicChange('d17', index, e)} 
-                                                        />
-                                                    </div>
-                                                    <SelectInput label="EF Unit (排放因子單位)" id={`d17-k-${index}`} name="k" options={D17_OPTIONS_K_EF_UNIT} required value={row.k as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                                </>
-                                            )}
-
-                                            {showCarbonContent_Top && (
-                                                <TextInput label="Carbon content (碳含量)" id={`d17-l-${index}`} name="l" type="number" required value={row.l as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                            )}
-                                        </div>
-
-                                        {/* Separator for Optional/Conditional Fields */}
-                                        <div className="lg:col-span-4 h-px bg-slate-200 my-1"></div>
-                                        <div className="lg:col-span-4 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Additional / Optional Data</div>
-                                        
-                                        {/* Oxidation Factor - Combustion Only */}
-                                        {showOxidationFactor && (
-                                            <TextInput label="Oxidation factor (OxF) (氧化因子)" id={`d17-n-${index}`} name="n" type="number" value={row.n as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                        )}
-                                        
-                                        {/* Conversion Factor - Process Emissions Only */}
-                                        {showConversionFactor && (
-                                            <TextInput label="Conversion factor (ConvF) (轉換因子)" id={`d17-p-${index}`} name="p" type="number" value={row.p as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                        )}
-                                        
-                                        <TextInput label="Biomass content (BioC) (生質含量)" id={`d17-r-${index}`} name="r" type="number" value={row.r as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                    </div>
+        <div className="space-y-8">
+            <section className="space-y-4">
+                <Heading
+                    label="(a) Source streams, calculation-based (排放源流：計算法)"
+                    note={label('Every fuel or material that emits CO2 when used: for a fastener plant usually the natural gas or fuel oil burned in heat-treatment and forging furnaces. (使用時會排放 CO2 的每種燃料或原料；扣件廠通常是熱處理爐、鍛造爐燒的天然氣或燃料油。)')}
+                />
+                {data.d17.map((row, index) => {
+                    const method = row.d as string;
+                    const isMassBalance = method === 'Mass Balance';
+                    const isCombustion = method === 'Combustion';
+                    const isProcessEmissions = method === 'Process emissions';
+                    return (
+                        <SwipeRow key={index} onDelete={() => removeRow('d17', index, t(`排放源流 ${index + 1}`, `source stream ${index + 1}`))} label={`${index + 1}`}>
+                            <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{t('排放源流', 'Source stream')} {index + 1}</div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <SelectInput label="Method (計算方法)" id={`d17-d-${index}`} name="d" options={D17_OPTIONS_METHOD} required value={row.d as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                <div className="lg:col-span-2">
+                                    <TextInput label="Source stream name (排放源流名稱)" id={`d17-e-${index}`} name="e" type="text" required value={row.e as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                    {isCombustion && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setCurrentRowIndex(index); setIsSearchModalOpen(true); }}
+                                            className="pressable mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-indigo-600 hover:bg-indigo-500/10"
+                                        >
+                                            <Search size={12} /> {t('套用燃料預設值（IPCC）', 'Use fuel defaults (IPCC)')}
+                                        </button>
+                                    )}
                                 </div>
-                             );
-                        })}
-                        <Button onClick={() => addRow('d17')}>Add Next Line (新增下一行)</Button>
-                    </div>
+                                <div />
+                                <TextInput label="Activity data (AD) (活動數據)" id={`d17-f-${index}`} name="f" type="number" required value={row.f as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                <SelectInput label="AD unit (活動數據單位)" id={`d17-g-${index}`} name="g" options={D17_OPTIONS_G_UNIT} required value={row.g as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                <TextInput label="Net calorific value (NCV) (淨熱值)" id={`d17-h-${index}`} name="h" type="number" unit="GJ/t" required={!isProcessEmissions && !isMassBalance} value={row.h as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                {!isMassBalance ? (
+                                    <>
+                                        <TextInput label="Emission factor (EF) (排放係數)" id={`d17-j-${index}`} name="j" type="number" required value={row.j as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                        <SelectInput label="EF unit (排放係數單位)" id={`d17-k-${index}`} name="k" options={D17_OPTIONS_K_EF_UNIT} required value={row.k as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                    </>
+                                ) : (
+                                    <TextInput label="Carbon content (碳含量)" id={`d17-l-${index}`} name="l" type="number" required value={row.l as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                )}
+                                {isCombustion && <TextInput label="Oxidation factor (OxF) (氧化因子)" id={`d17-n-${index}`} name="n" type="number" unit="%" value={row.n as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />}
+                                {isProcessEmissions && <TextInput label="Conversion factor (ConvF) (轉化因子)" id={`d17-p-${index}`} name="p" type="number" unit="%" value={row.p as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />}
+                                <TextInput label="Biomass content (BioC) (生質含量)" id={`d17-r-${index}`} name="r" type="number" unit="%" value={row.r as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                            </div>
+                        </SwipeRow>
+                    );
+                })}
+                <AddRowButton count={data.d17.length} cap={CAPS['b.d17']} onAdd={() => addRow('d17')} label={t('新增排放源流', 'Add source stream')} />
+            </section>
+
+            <CollapsibleSection title="(b) PFC emissions, primary aluminium only (PFC 排放，僅原鋁生產)" isSubSection>
+                <div className="space-y-4">
+                    {data.d98.map((row, index) => {
+                        const method = row.d as string;
+                        const fields = [
+                            ...(method === 'Slope method' ? PFC_SLOPE : method === 'Overvoltage method' ? PFC_OVERVOLTAGE : []),
+                            ...PFC_COMMON,
+                        ];
+                        return (
+                            <SwipeRow key={index} onDelete={() => removeRow('d98', index, t(`PFC 排放源 ${index + 1}`, `PFC source ${index + 1}`))} label={`${index + 1}`}>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                    <SelectInput label="Method (計算方法)" id={`d98-d-${index}`} name="d" options={D98_OPTIONS_PFC} value={row.d as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />
+                                    <TextInput label="Technology type (電解槽技術類型)" id={`d98-e-${index}`} name="e" type="text" value={row.e as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />
+                                    <TextInput label="Activity data (AD) (活動數據)" id={`d98-f-${index}`} name="f" type="number" value={row.f as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />
+                                    <div />
+                                    {fields.map(f => (
+                                        <TextInput key={f.col} label={f.label} id={`d98-${f.col}-${index}`} name={f.col} type="number" unit={'unit' in f ? f.unit : undefined}
+                                            value={row[f.col] as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />
+                                    ))}
+                                </div>
+                            </SwipeRow>
+                        );
+                    })}
+                    <AddRowButton count={data.d98.length} cap={CAPS['b.d98']} onAdd={() => addRow('d98')} label={t('新增 PFC 排放源', 'Add PFC source')} />
                 </div>
-                
-                <CollapsibleSection title="(b) PFC (perfluorocarbon) emissions (PFC 排放) - Optional (非必填)" isSubSection>
-                    <div className="space-y-4">
-                        {data.d98.map((row, index) => (
-                             <div key={index} className="p-4 rounded-lg border border-slate-200 bg-slate-50 animate-fadeIn">
-                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <div className="lg:col-span-4 flex justify-between items-center mb-2">
-                                        <span className="font-semibold text-slate-700">PFC Source #{index + 1}</span>
-                                        <Button variant="remove" onClick={() => removeRow('d98', index)} aria-label="Remove D98 item"/>
-                                    </div>
+            </CollapsibleSection>
 
-                                    {/* Required Fields Group */}
-                                    <SelectInput label="Method (方法)" id={`d98-d-${index}`} name="d" options={D98_OPTIONS_PFC} value={row.d as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />
-                                    <TextInput label="Source stream name (來源流名稱)" id={`d98-e-${index}`} name="e" type="text" value={row.e as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />
-                                    
-                                    {/* Separator */}
-                                    <div className="lg:col-span-4 h-px bg-slate-200 my-1"></div>
-                                    <div className="lg:col-span-4 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Additional / Optional Data</div>
-
-                                    <div className="lg:col-span-2"><TextInput label="Activity data (AD) (活動數據)" id={`d98-f-${index}`} name="f" type="number" value={row.f as string || ''} onChange={e => handleDynamicChange('d98', index, e)} /></div>
-                                    
-                                    <div className="lg:col-span-4 mt-2 mb-2">
-                                        <p className="font-medium text-sm text-slate-600 mb-2">Emission Factor / Precursor (排放係數 / 前驅物)</p>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            {['ag', 'ah', 'ai', 'aj', 'ak', 'al', 'am', 'an', 'ao', 'ap', 'aq', 'ar', 'as', 'at', 'au'].map(col => {
-                                                const labels: Record<string, string> = { ag: "EF - CO2", ah: "EF - N2O", ai: "EF - CH4", aj: "EF - PFCs", ak: "EF - Other GHGs", al: "Precursor - NOX", am: "Precursor - SO2", an: "Precursor - PM", ao: "Precursor - Pb+Cd", ap: "Precursor - Hg", aq: "Precursor - As+Cr+Ni", ar: "Precursor - B(a)P", as: "Precursor - Dioxins", at: "Precursor - HF", au: "Precursor - Other" };
-                                                return <TextInput key={col} label={`${labels[col]}`} id={`d98-${col}-${index}`} name={col} type="number" value={row[col] as string || ''} onChange={e => handleDynamicChange('d98', index, e)} />;
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
+            <CollapsibleSection title="(c) Emission sources, measurement-based (排放源：量測法，選填)" isSubSection>
+                <div className="space-y-4">
+                    {data.d113.map((row, index) => (
+                        <SwipeRow key={index} onDelete={() => removeRow('d113', index, t(`量測排放源 ${index + 1}`, `measured source ${index + 1}`))} label={`${index + 1}`}>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <div className="lg:col-span-2"><TextInput label="Name (名稱)" id={`d113-d-${index}`} name="d" type="text" value={row.d as string || ''} onChange={e => handleDynamicChange('d113', index, e)} /></div>
+                                <div className="lg:col-span-2"><SelectInput label="Type of GHG (溫室氣體種類)" id={`d113-e-${index}`} name="e" options={D113_E_OPTIONS} value={row.e as string || ''} onChange={e => handleDynamicChange('d113', index, e)} /></div>
+                                <TextInput label="Biomass fraction (生質比例)" id={`d113-r-${index}`} name="r" type="number" unit="%" value={row.r as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
+                                <TextInput label="Hourly GHG concentration, average (每小時平均濃度)" id={`d113-v-${index}`} name="v" type="number" value={row.v as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
+                                <TextInput label="Hours operating (運轉時數)" id={`d113-x-${index}`} name="x" type="number" unit="h" value={row.x as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
+                                <TextInput label="Flue gas flow, average (平均煙氣流量)" id={`d113-z-${index}`} name="z" type="number" value={row.z as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
+                                <TextInput label="Energy content, fossil (化石能源含量)" id={`d113-ax-${index}`} name="ax" type="number" unit="TJ" value={row.ax as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
+                                <TextInput label="Energy content, biomass (生質能源含量)" id={`d113-ay-${index}`} name="ay" type="number" unit="TJ" value={row.ay as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
                             </div>
-                        ))}
-                        <Button onClick={() => addRow('d98')}>Add Next Line (新增下一行)</Button>
-                    </div>
-                </CollapsibleSection>
-                
-                <CollapsibleSection title="(c) Measurement-Based Approaches: Emissions Sources (基于測量的方法 - 排除 PFC) - Optional (非必填)" isSubSection>
-                    <div className="space-y-4">
-                        {data.d113.map((row, index) => (
-                             <div key={index} className="p-4 rounded-lg border border-slate-200 bg-slate-50 animate-fadeIn">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                     <div className="lg:col-span-4 flex justify-between items-center mb-2">
-                                        <span className="font-semibold text-slate-700">Measurement Source #{index + 1}</span>
-                                        <Button variant="remove" onClick={() => removeRow('d113', index)} aria-label="Remove D113 item"/>
-                                    </div>
-                                    
-                                    {/* Required Fields Group */}
-                                    <div className="lg:col-span-2"><TextInput label="Name (名稱)" id={`d113-d-${index}`} name="d" type="text" value={row.d as string || ''} onChange={e => handleDynamicChange('d113', index, e)} /></div>
-                                    <div className="lg:col-span-2"><SelectInput label="Type of GHG (溫室氣體類型)" id={`d113-e-${index}`} name="e" options={D113_E_OPTIONS} value={row.e as string || ''} onChange={e => handleDynamicChange('d113', index, e)} /></div>
+                        </SwipeRow>
+                    ))}
+                    <AddRowButton count={data.d113.length} cap={CAPS['b.d113']} onAdd={() => addRow('d113')} label={t('新增量測排放源', 'Add measured source')} />
+                </div>
+            </CollapsibleSection>
 
-                                    {/* Separator */}
-                                    <div className="lg:col-span-4 h-px bg-slate-200 my-1"></div>
-                                    <div className="lg:col-span-4 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Additional / Optional Data</div>
-
-                                    <TextInput label="Biomass fraction (BioC) (生質比例)" id={`d113-r-${index}`} name="r" type="number" value={row.r as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
-                                    <TextInput label="Hourly GHG conc. Avg (每小時平均濃度)" id={`d113-v-${index}`} name="v" type="number" value={row.v as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
-                                    <TextInput label="Hours operating (操作時數)" id={`d113-x-${index}`} name="x" type="number" value={row.x as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
-                                    <TextInput label="Flue gas flow (avg) (平均煙氣流量)" id={`d113-z-${index}`} name="z" type="number" value={row.z as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
-                                    <TextInput label="Energy content (fossil) (化石能源含量)" id={`d113-ax-${index}`} name="ax" type="number" value={row.ax as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
-                                    <TextInput label="Energy content (bio) (生物能源含量)" id={`d113-ay-${index}`} name="ay" type="number" value={row.ay as string || ''} onChange={e => handleDynamicChange('d113', index, e)} />
-                                </div>
-                            </div>
-                        ))}
-                         <Button onClick={() => addRow('d113')}>Add Next Line (新增下一行)</Button>
-                    </div>
-                </CollapsibleSection>
-            </div>
-            
-            <EFDefaultsSearchModal 
-                isOpen={isSearchModalOpen} 
-                onClose={() => setIsSearchModalOpen(false)} 
-                onSelect={handleDefaultSelect} 
-            />
-        </CollapsibleSection>
+            <EFDefaultsSearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} onSelect={applyFuel} />
+        </div>
     );
 };
 
