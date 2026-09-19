@@ -1,0 +1,36 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Secrets (the Gemini key lives in .env.local and the CI secret only)
+.env*
+electron/key.cjs
+
+# Build output
+release
+dist-electron
+
+# Large reference downloads (the V2.1.1 template itself is committed)
+reference/*.zip
+reference/examples/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

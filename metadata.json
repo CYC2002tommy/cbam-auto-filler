@@ -1,0 +1,5 @@
+{
+  "name": "CBAM Report Data Entry",
+  "description": "An application for entering data for CBAM reports, based on the logic of a Python script. It helps fill out worksheets like A_InstData, B_EmInst, C_Emissions&Energy, D_Processes, and E_PurchPrec.",
+  "requestFramePermissions": []
+}
