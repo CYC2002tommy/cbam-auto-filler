@@ -14,6 +14,33 @@ const path = require('node:path');
  */
 const MODEL = 'gemini-flash-latest';
 
+/*
+ * These strings are thrown as Error messages and the renderer shows them to the user
+ * verbatim, so they have to follow the app's language. What language the *model* answers
+ * in is a separate decision, made in ASSISTANT_INSTRUCTIONS.
+ */
+const MESSAGES = {
+    zh: {
+        noKey: '尚未設定 Gemini API 金鑰。請在設定中貼上自己的金鑰，或在 .env.local 設定 GEMINI_API_KEY。',
+        noKeyShort: '尚未設定 Gemini API 金鑰。',
+        rateLimit: 'Gemini 免費額度已用完，請稍後再試，或在設定中改用自己的 API 金鑰。',
+        emptyExtract: 'Gemini 沒有回傳可用的內容。',
+        empty: 'Gemini 沒有回傳內容。',
+        status: (code) => `Gemini 回應 ${code}`,
+        statusDetail: (code, detail) => `Gemini 回應 ${code}：${detail}`,
+    },
+    en: {
+        noKey: 'No Gemini API key set. Paste your own key in Settings, or set GEMINI_API_KEY in .env.local.',
+        noKeyShort: 'No Gemini API key set.',
+        rateLimit: 'The free Gemini quota is used up. Try again later, or switch to your own API key in Settings.',
+        emptyExtract: 'Gemini returned nothing usable.',
+        empty: 'Gemini returned no text.',
+        status: (code) => `Gemini returned ${code}`,
+        statusDetail: (code, detail) => `Gemini returned ${code}: ${detail}`,
+    },
+};
+const say = (lang) => (lang === 'en' ? MESSAGES.en : MESSAGES.zh);
+
 const readKey = () => {
     if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
     try {
@@ -68,10 +95,11 @@ const fieldList = (fields) => fields
     .join('\n');
 
 /** One document in, a list of proposed values out. Throws with a readable message. */
-const extract = async ({ dataBase64, mimeType, fields, key: override }) => {
+const extract = async ({ dataBase64, mimeType, fields, lang = 'zh', key: override }) => {
+    const m = say(lang);
     const key = override || readKey();
     if (!key) {
-        const error = new Error('尚未設定 Gemini API 金鑰。請在設定中貼上自己的金鑰，或在 .env.local 設定 GEMINI_API_KEY。');
+        const error = new Error(m.noKey);
         error.code = 'NO_KEY';
         throw error;
     }
@@ -102,18 +130,18 @@ const extract = async ({ dataBase64, mimeType, fields, key: override }) => {
     }
 
     if (response.status === 429) {
-        const error = new Error('Gemini 免費額度已用完，請稍後再試，或在設定中改用自己的 API 金鑰。');
+        const error = new Error(m.rateLimit);
         error.code = 'RATE_LIMIT';
         throw error;
     }
     if (!response.ok) {
         const detail = await response.text();
-        throw new Error(`Gemini 回應 ${response.status}：${detail.slice(0, 200)}`);
+        throw new Error(m.statusDetail(response.status, detail.slice(0, 200)));
     }
 
     const payload = await response.json();
     const text = payload.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Gemini 沒有回傳可用的內容。');
+    if (!text) throw new Error(m.emptyExtract);
     const parsed = JSON.parse(text);
     return {
         documentType: parsed.documentType ?? '',
@@ -125,10 +153,13 @@ const extract = async ({ dataBase64, mimeType, fields, key: override }) => {
 };
 
 
-const ASSISTANT_INSTRUCTIONS = `你是 CBAM 申報助手，協助台灣中小企業（多為螺絲、扣件、鋼鐵製品廠）填寫歐盟 CBAM 排放資料通報範本。
+const ASSISTANT_INSTRUCTIONS = (lang = 'zh') => `你是 CBAM 申報助手，協助台灣中小企業（多為螺絲、扣件、鋼鐵製品廠）填寫歐盟 CBAM 排放資料通報範本。
 
 回答規則：
-- 用繁體中文，直接講重點，不要客套。先給答案，再給理由。
+- ${lang === 'en'
+    ? 'Answer in English. These instructions and the known rules below are written in Chinese, but your reply must be in English. If the user explicitly asks for another language during the conversation, switch to it instead of contradicting them.'
+    : '用繁體中文回答。若使用者在對話中明確要求換成別的語言，就改用他要求的語言，不要跟他對抗。'}
+- 直接講重點，不要客套。先給答案，再給理由。
 - 使用者問「這格要填什麼」時，說明欄位意義、數字從哪裡來（哪張單據、哪個部門），並舉一個扣件廠的例子。
 - 只講你有把握的規則。不確定就說不確定，並建議打 0800-583-885（申報諮詢專線）或查歐盟官方指引，不要編造條文編號或數字。
 - 不要重複使用者的問題，不要用條列式開場白。
@@ -142,23 +173,25 @@ const ASSISTANT_INSTRUCTIONS = `你是 CBAM 申報助手，協助台灣中小企
 - 活動數據 × 淨熱值 × 排放係數 = 該排放源流的排放量；IPCC 2006 天然氣預設值為淨熱值 48 GJ/t、排放係數 56.1 tCO2/TJ。`;
 
 /** Free-text question about filling the declaration. Returns plain text. */
-const ask = async ({ question, history = [], context = '', key: override }) => {
+const ask = async ({ question, history = [], context = '', lang = 'zh', key: override }) => {
+    const m = say(lang);
     const key = override || readKey();
     if (!key) {
-        const error = new Error('尚未設定 Gemini API 金鑰。');
+        const error = new Error(m.noKeyShort);
         error.code = 'NO_KEY';
         throw error;
     }
     const contents = [
         ...history.slice(-8).map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.text }] })),
-        { role: 'user', parts: [{ text: context ? `（使用者目前在「${context}」這一頁）
-${question}` : question }] },
+        { role: 'user', parts: [{ text: context
+            ? `${lang === 'en' ? `(The user is on the "${context}" page.)` : `（使用者目前在「${context}」這一頁）`}\n${question}`
+            : question }] },
     ];
     const post = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
         body: JSON.stringify({
-            systemInstruction: { parts: [{ text: ASSISTANT_INSTRUCTIONS }] },
+            systemInstruction: { parts: [{ text: ASSISTANT_INSTRUCTIONS(lang) }] },
             contents,
             generationConfig: { temperature: 0.2, maxOutputTokens: 900 },
         }),
@@ -169,14 +202,14 @@ ${question}` : question }] },
         response = await post();
     }
     if (response.status === 429) {
-        const error = new Error('Gemini 免費額度已用完，請稍後再試，或在設定中改用自己的 API 金鑰。');
+        const error = new Error(m.rateLimit);
         error.code = 'RATE_LIMIT';
         throw error;
     }
-    if (!response.ok) throw new Error(`Gemini 回應 ${response.status}`);
+    if (!response.ok) throw new Error(m.status(response.status));
     const payload = await response.json();
     const text = payload.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('') ?? '';
-    if (!text) throw new Error('Gemini 沒有回傳內容。');
+    if (!text) throw new Error(m.empty);
     return { text, model: payload.modelVersion ?? MODEL };
 };
 

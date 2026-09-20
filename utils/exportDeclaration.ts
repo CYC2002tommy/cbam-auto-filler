@@ -17,9 +17,9 @@ declare global {
             ai?: {
                 status: () => Promise<{ available: boolean }>;
                 setKey: (key: string) => Promise<boolean>;
-                extract: (payload: { dataBase64: string; mimeType: string; fields: { id: string; label: string; unit?: string; hint?: string }[] })
+                extract: (payload: { dataBase64: string; mimeType: string; fields: { id: string; label: string; unit?: string; hint?: string }[]; lang?: 'zh' | 'en' })
                     => Promise<{ documentType?: string; period?: string; values: { fieldId: string; value: string; unit?: string; evidence: string; confidence: number }[] }>;
-                ask: (payload: { question: string; history: { role: string; text: string }[]; context: string })
+                ask: (payload: { question: string; history: { role: string; text: string }[]; context: string; lang?: 'zh' | 'en' })
                     => Promise<{ text: string; model?: string }>;
             };
             /** Native menu items; returns an unsubscribe function. */

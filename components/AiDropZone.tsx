@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Sparkles, Upload } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import AiReviewSheet from './AiReviewSheet';
-import { useT } from '../ui/prefs';
+import { usePrefs, useT } from '../ui/prefs';
 import { useToast } from '../ui/toast';
 import type { FormData, KeyValue } from '../types';
 import { AI_FIELDS } from '../ai/fields';
@@ -35,6 +35,7 @@ interface Props {
  */
 const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
     const t = useT();
+    const { lang } = usePrefs();
     const toast = useToast();
     const [dragging, setDragging] = useState(false);
     const [consentOpen, setConsentOpen] = useState(false);
@@ -81,6 +82,7 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
                     dataBase64,
                     mimeType: file.type || 'application/pdf',
                     fields: AI_FIELDS.map(f => ({ id: f.id, label: f.label, unit: f.unit, hint: f.hint })),
+                    lang,
                 });
                 if (result.documentType) types.push(result.documentType);
                 for (const v of result.values ?? []) collected.push({ ...v, source: file.name });
@@ -138,9 +140,9 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
 
     const ask = useCallback(async (question: string, history: { role: 'user' | 'ai'; text: string }[], context: string) => {
         if (!window.cbam?.ai?.ask) throw new Error(t('文字對話只在桌面版可用。', 'The assistant is only available in the desktop app.'));
-        const result = await window.cbam.ai.ask({ question, history: history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.text })), context });
+        const result = await window.cbam.ai.ask({ question, history: history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.text })), context, lang });
         return result.text;
-    }, [t]);
+    }, [t, lang]);
 
     const apply = () => {
         const next = applyProposals(form, proposals);

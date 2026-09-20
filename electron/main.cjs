@@ -127,10 +127,10 @@ ipcMain.handle('ai:setKey', async (_event, key) => {
     storeUserKey(userKey);
     return true;
 });
-ipcMain.handle('ai:extract', async (_event, { dataBase64, mimeType, fields }) =>
-    gemini.extract({ dataBase64, mimeType, fields, key: userKey }));
-ipcMain.handle('ai:ask', async (_event, { question, history, context }) =>
-    gemini.ask({ question, history, context, key: userKey }));
+ipcMain.handle('ai:extract', async (_event, { dataBase64, mimeType, fields, lang }) =>
+    gemini.extract({ dataBase64, mimeType, fields, lang, key: userKey }));
+ipcMain.handle('ai:ask', async (_event, { question, history, context, lang }) =>
+    gemini.ask({ question, history, context, lang, key: userKey }));
 
 
 /** Application menu. The items the renderer owns are sent to it as menu actions. */
