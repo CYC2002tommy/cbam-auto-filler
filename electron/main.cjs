@@ -107,7 +107,10 @@ const keyFile = () => path.join(app.getPath('userData'), 'gemini.key');
 let userKey = null;
 const loadUserKey = () => {
     try {
-        if (!safeStorage.isEncryptionAvailable() || !fsSync.existsSync(keyFile())) return null;
+        // The file check comes first on purpose. On macOS the first safeStorage call reaches
+        // into the login Keychain, which prompts the user; someone who has never saved a key
+        // should not meet that prompt at launch, before the app has given them any reason for it.
+        if (!fsSync.existsSync(keyFile()) || !safeStorage.isEncryptionAvailable()) return null;
         return safeStorage.decryptString(fsSync.readFileSync(keyFile()));
     } catch { return null; }
 };
