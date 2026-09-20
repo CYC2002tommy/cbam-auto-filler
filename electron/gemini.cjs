@@ -26,6 +26,7 @@ const MESSAGES = {
         rateLimit: 'Gemini 免費額度已用完，請稍後再試，或在設定中改用自己的 API 金鑰。',
         emptyExtract: 'Gemini 沒有回傳可用的內容。',
         empty: 'Gemini 沒有回傳內容。',
+        truncated: '（回答太長被截斷了。請它「接著說」，或把問題問得更具體一點。）',
         status: (code) => `Gemini 回應 ${code}`,
         statusDetail: (code, detail) => `Gemini 回應 ${code}：${detail}`,
     },
@@ -35,6 +36,7 @@ const MESSAGES = {
         rateLimit: 'The free Gemini quota is used up. Try again later, or switch to your own API key in Settings.',
         emptyExtract: 'Gemini returned nothing usable.',
         empty: 'Gemini returned no text.',
+        truncated: '(The answer was cut off because it ran long. Ask it to continue, or narrow the question.)',
         status: (code) => `Gemini returned ${code}`,
         statusDetail: (code, detail) => `Gemini returned ${code}: ${detail}`,
     },
@@ -159,10 +161,15 @@ const ASSISTANT_INSTRUCTIONS = (lang = 'zh') => `你是 CBAM 申報助手，協�
 - ${lang === 'en'
     ? 'Answer in English. These instructions and the known rules below are written in Chinese, but your reply must be in English. If the user explicitly asks for another language during the conversation, switch to it instead of contradicting them.'
     : '用繁體中文回答。若使用者在對話中明確要求換成別的語言，就改用他要求的語言，不要跟他對抗。'}
-- 直接講重點，不要客套。先給答案，再給理由。
-- 使用者問「這格要填什麼」時，說明欄位意義、數字從哪裡來（哪張單據、哪個部門），並舉一個扣件廠的例子。
+- **極度簡潔，這條最重要。** 預設 120 字以內（英文約 80 words）。先給答案，再補一句理由。超過就是答錯了。
+- 沒有開場白、沒有結尾客套、不要複述問題、不要說「好的」「當然」「希望對你有幫助」。
+- 只回答被問的那一件事。想到的相鄰主題一律不要主動補充，等使用者問。
+- 需要照順序做才用編號，一個編號一個動作，最多 5 點。不需要步驟就用散文，不要硬拆成清單。
+- 使用者問「這格要填什麼」時：欄位意義一句、數字去哪拿一句（哪張單據、哪個部門）、扣件廠例子一句。就這三句。
+- 最後用一行給一個具體的下一步動作，動詞開頭。
 - 只講你有把握的規則。不確定就說不確定，並建議打 0800-583-885（申報諮詢專線）或查歐盟官方指引，不要編造條文編號或數字。
-- 不要重複使用者的問題，不要用條列式開場白。
+- 格式只能用：**粗體**、「- 」項目符號、「1. 」編號。不要用 # 標題、表格、引用區或程式碼區塊。
+- 絕對不要用 LaTeX 或 $ 數學符號。公式直接寫成「排放量 = 活動數據 × 淨熱值 × 排放係數」，單位直接寫 GJ/t、t CO2/TJ、Nm3。
 
 已知規則（可直接引用）：
 - 鋼鐵、鋁、氫屬於 CBAM 法規附件 II，正式期只計直接排放，用電的間接排放不計入（歐盟指引 5D）。水泥、肥料則要計入。
@@ -193,7 +200,7 @@ const ask = async ({ question, history = [], context = '', lang = 'zh', key: ove
         body: JSON.stringify({
             systemInstruction: { parts: [{ text: ASSISTANT_INSTRUCTIONS(lang) }] },
             contents,
-            generationConfig: { temperature: 0.2, maxOutputTokens: 900 },
+            generationConfig: { temperature: 0.2, maxOutputTokens: 1600 },
         }),
     });
     let response = await post();
@@ -208,9 +215,12 @@ const ask = async ({ question, history = [], context = '', lang = 'zh', key: ove
     }
     if (!response.ok) throw new Error(m.status(response.status));
     const payload = await response.json();
-    const text = payload.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('') ?? '';
+    const candidate = payload.candidates?.[0];
+    const text = candidate?.content?.parts?.map(p => p.text).filter(Boolean).join('') ?? '';
     if (!text) throw new Error(m.empty);
-    return { text, model: payload.modelVersion ?? MODEL };
+    // Hitting the token cap used to end the answer mid-sentence with nothing to show for it.
+    const cut = candidate?.finishReason === 'MAX_TOKENS';
+    return { text: cut ? `${text}\n\n${m.truncated}` : text, model: payload.modelVersion ?? MODEL };
 };
 
 module.exports = { extract, ask, hasKey: () => Boolean(readKey()) };

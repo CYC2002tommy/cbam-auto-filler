@@ -12,6 +12,34 @@ const SUGGESTIONS = [
     { zh: '用電量要填嗎？', en: 'Do I need to report electricity?' },
 ];
 
+/**
+ * The assistant is told to answer in a small Markdown subset: **bold**, "- " bullets and
+ * "1. " steps, with no LaTeX (see ASSISTANT_INSTRUCTIONS in electron/gemini.cjs). Rendering
+ * it to React elements rather than HTML keeps model output away from innerHTML. A heading
+ * or symbol that slips through still reads as an ordinary line.
+ */
+const inline = (text: string): React.ReactNode[] =>
+    text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
+        if (part.startsWith('`') && part.endsWith('`')) return <code key={i} className="rounded bg-slate-900/10 px-1 py-0.5 text-[0.8125rem]">{part.slice(1, -1)}</code>;
+        return part;
+    });
+
+const Rich: React.FC<{ text: string }> = ({ text }) => (
+    <>
+        {text.split('\n').map((line, i) => {
+            const heading = /^#{1,6}\s+(.*)$/.exec(line);
+            if (heading) return <div key={i} className="mt-2 font-semibold first:mt-0">{inline(heading[1])}</div>;
+            const bullet = /^\s*[-*]\s+(.*)$/.exec(line);
+            if (bullet) return <div key={i} className="flex gap-1.5"><span className="shrink-0">•</span><span>{inline(bullet[1])}</span></div>;
+            const step = /^\s*(\d+)\.\s+(.*)$/.exec(line);
+            if (step) return <div key={i} className="flex gap-1.5"><span className="shrink-0">{step[1]}.</span><span>{inline(step[2])}</span></div>;
+            if (!line.trim()) return <div key={i} className="h-2" />;
+            return <div key={i}>{inline(line)}</div>;
+        })}
+    </>
+);
+
 interface Message { role: 'user' | 'ai'; text: string }
 
 const AiPage: React.FC<{ currentPage: string }> = ({ currentPage }) => {
@@ -93,9 +121,9 @@ const AiPage: React.FC<{ currentPage: string }> = ({ currentPage }) => {
                     )}
                     {messages.map((m, i) => (
                         <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                                m.role === 'user' ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-800'}`}>
-                                {m.text}
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                                m.role === 'user' ? 'whitespace-pre-wrap bg-indigo-500 text-white' : 'bg-slate-100 text-slate-800'}`}>
+                                {m.role === 'user' ? m.text : <Rich text={m.text} />}
                             </div>
                         </div>
                     ))}
