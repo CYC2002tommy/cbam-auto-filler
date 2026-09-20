@@ -2,7 +2,7 @@
   "name": "cbam-auto-filler",
   "productName": "CBAM 申報助手",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Desktop tool for Taiwanese SMEs filling the EU CBAM communication template",
   "author": "NCHU CBAM project",
   "type": "module",
@@ -47,7 +47,13 @@
     "extraResources": [{ "from": "template", "to": "template", "filter": ["*.xlsx"] }],
     "win": { "target": "nsis", "artifactName": "CBAM-Auto-Filler-${version}-setup.${ext}" },
     "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "perMachine": false },
-    "mac": { "target": "dmg", "category": "public.app-category.productivity", "artifactName": "CBAM-Auto-Filler-${version}.${ext}" },
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "category": "public.app-category.productivity",
+      "artifactName": "CBAM-Auto-Filler-${version}-${arch}.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false
+    },
     "fileAssociations": [{ "ext": "cbam", "name": "CBAM project", "role": "Editor" }]
   }
 }

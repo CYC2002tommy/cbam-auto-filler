@@ -1,6 +1,6 @@
 # 安裝說明 / Installing
 
-試行版的安裝檔沒有購買程式碼簽章憑證，所以 Windows 和 macOS 都會先擋一次。這是正常的，照下面做即可。
+試行版的安裝檔沒有購買 Apple／Microsoft 的程式碼簽章憑證，所以 Windows 和 macOS 都會先擋一次。這是正常的，照下面做即可。
 
 ## Windows
 
@@ -12,11 +12,34 @@
 
 ## macOS
 
-1. 下載 `CBAM-Auto-Filler-x.y.z.dmg`，打開後把程式拖到「應用程式」。
+先看你的 Mac 是哪一種：左上角  → **關於這台 Mac**，看「晶片 / 處理器」。
+
+- 寫 **Apple M1／M2／M3…** → 下載 `CBAM-Auto-Filler-x.y.z-arm64.dmg`
+- 寫 **Intel** → 下載 `CBAM-Auto-Filler-x.y.z-x64.dmg`
+
+步驟：
+
+1. 打開 dmg，把程式拖到「應用程式」。
 2. 第一次打開會出現「無法打開，因為無法驗證開發者」：
    - 打開 **系統設定 → 隱私權與安全性**
    - 捲到底，點 **強制打開**
 3. 之後就能正常開啟。
+
+### 如果看到「已損毀，你應該將其移到垃圾桶」
+
+這不是檔案壞掉，是 macOS 對「從網路下載、又沒有 Apple 付費憑證」的程式的說法。**v0.1.1 的 dmg 會出現這個訊息，請改下載 v0.1.2 以後的版本。**
+
+手上已經是舊版、不想重載的話，打開「終端機」執行一行，再開一次程式：
+
+```bash
+xattr -cr "/Applications/CBAM Auto-Filler.app"
+```
+
+還是擋的話，再補一行重新簽一次（本機簽，不需要任何憑證）：
+
+```bash
+codesign --force --deep --sign - "/Applications/CBAM Auto-Filler.app"
+```
 
 ## 資料存在哪裡
 
