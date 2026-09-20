@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell, nativeTheme } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, safeStorage, shell, nativeTheme } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
@@ -84,18 +84,38 @@ ipcMain.handle('file:reveal', async (_event, filePath) => { shell.showItemInFold
 
 // --- AI document reading -------------------------------------------------------------
 const gemini = require('./gemini.cjs');
-let userKey = null;   // a key the user pasted in settings, kept in memory for the session
+const fsSync = require('node:fs');
 
-ipcMain.handle('ai:status', async () => ({ available: gemini.hasKey() || Boolean(userKey) }));
-ipcMain.handle('ai:setKey', async (_event, key) => { userKey = key || null; return true; });
-ipcMain.handle('ai:extract', async (_event, { dataBase64, mimeType, fields }) => {
-    if (userKey) process.env.GEMINI_API_KEY = userKey;
-    return gemini.extract({ dataBase64, mimeType, fields });
+// A key the user pastes in settings is kept encrypted in the user's own profile,
+// so it survives a restart but never sits in plain text next to the app.
+const keyFile = () => path.join(app.getPath('userData'), 'gemini.key');
+let userKey = null;
+const loadUserKey = () => {
+    try {
+        if (!safeStorage.isEncryptionAvailable() || !fsSync.existsSync(keyFile())) return null;
+        return safeStorage.decryptString(fsSync.readFileSync(keyFile()));
+    } catch { return null; }
+};
+const storeUserKey = (key) => {
+    try {
+        if (!key) { fsSync.rmSync(keyFile(), { force: true }); return; }
+        if (safeStorage.isEncryptionAvailable()) fsSync.writeFileSync(keyFile(), safeStorage.encryptString(key));
+    } catch { /* a key that cannot be stored still works for this session */ }
+};
+
+ipcMain.handle('ai:status', async () => ({
+    available: Boolean(userKey) || gemini.hasKey(),
+    usingOwnKey: Boolean(userKey),
+}));
+ipcMain.handle('ai:setKey', async (_event, key) => {
+    userKey = key || null;
+    storeUserKey(userKey);
+    return true;
 });
-ipcMain.handle('ai:ask', async (_event, { question, history, context }) => {
-    if (userKey) process.env.GEMINI_API_KEY = userKey;
-    return gemini.ask({ question, history, context });
-});
+ipcMain.handle('ai:extract', async (_event, { dataBase64, mimeType, fields }) =>
+    gemini.extract({ dataBase64, mimeType, fields, key: userKey }));
+ipcMain.handle('ai:ask', async (_event, { question, history, context }) =>
+    gemini.ask({ question, history, context, key: userKey }));
 
 
 /** Application menu. The items the renderer owns are sent to it as menu actions. */
@@ -139,6 +159,7 @@ const buildMenu = () => {
 };
 
 app.whenReady().then(() => {
+    userKey = loadUserKey();
     createWindow();
     buildMenu();
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

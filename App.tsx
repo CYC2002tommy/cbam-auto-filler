@@ -85,6 +85,7 @@ const Shell: React.FC = () => {
     const [missing, setMissing] = useState<Record<string, number>>({});
     const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [apiKey, setApiKey] = useState('');
     const openInput = useRef<HTMLInputElement>(null);
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const contentRef = useRef<HTMLDivElement>(null);
@@ -246,9 +247,43 @@ const Shell: React.FC = () => {
                 <span className="truncate">{t('設定', 'Settings')}</span>
             </button>
             {settingsOpen && (
-                <div className="material-sheet absolute bottom-11 left-0 z-40 w-64 rounded-[var(--radius-card)] p-3">
+                <div className="material-sheet absolute bottom-11 left-0 z-40 w-72 rounded-[var(--radius-card)] p-3">
                     <Switch on={showCodes} onChange={setShowCodes} label={t('顯示欄位代號', 'Show cell codes')} />
                     <Switch on={reduceTransparency} onChange={setReduceTransparency} label={t('降低透明度', 'Reduce transparency')} />
+                    {window.cbam?.ai && (
+                        <div className="hairline mt-2 border-t pt-2">
+                            <div className="text-sm text-slate-800">{t('自己的 Gemini 金鑰', 'Your own Gemini key')}</div>
+                            <p className="mt-0.5 text-[0.6875rem] leading-snug text-slate-500">
+                                {t('留白就用本程式內建的免費額度。貼上自己的付費金鑰後，上傳的內容不會被拿去訓練。',
+                                    'Leave empty to use the built-in free tier. With your own paid key, what you upload is not used for training.')}
+                            </p>
+                            <div className="mt-1.5 flex gap-1.5">
+                                <input
+                                    type="password"
+                                    className="field min-w-0 flex-1 px-2.5 py-1.5 text-xs"
+                                    placeholder="AIza…"
+                                    value={apiKey}
+                                    onChange={e => setApiKey(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    className="pressable rounded-lg bg-indigo-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-600"
+                                    onClick={async () => {
+                                        await window.cbam?.ai?.setKey(apiKey.trim());
+                                        const status = await window.cbam?.ai?.status();
+                                        toast.show({
+                                            message: status?.available
+                                                ? t('金鑰已套用（只存在這次執行期間）', 'Key applied for this session')
+                                                : t('尚未設定任何金鑰', 'No key configured'),
+                                            tone: status?.available ? 'success' : 'error',
+                                        });
+                                    }}
+                                >
+                                    {t('套用', 'Apply')}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

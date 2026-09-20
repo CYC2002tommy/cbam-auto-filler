@@ -68,8 +68,8 @@ const fieldList = (fields) => fields
     .join('\n');
 
 /** One document in, a list of proposed values out. Throws with a readable message. */
-const extract = async ({ dataBase64, mimeType, fields }) => {
-    const key = readKey();
+const extract = async ({ dataBase64, mimeType, fields, key: override }) => {
+    const key = override || readKey();
     if (!key) {
         const error = new Error('尚未設定 Gemini API 金鑰。請在設定中貼上自己的金鑰，或在 .env.local 設定 GEMINI_API_KEY。');
         error.code = 'NO_KEY';
@@ -142,8 +142,8 @@ const ASSISTANT_INSTRUCTIONS = `你是 CBAM 申報助手，協助台灣中小企
 - 活動數據 × 淨熱值 × 排放係數 = 該排放源流的排放量；IPCC 2006 天然氣預設值為淨熱值 48 GJ/t、排放係數 56.1 tCO2/TJ。`;
 
 /** Free-text question about filling the declaration. Returns plain text. */
-const ask = async ({ question, history = [], context = '' }) => {
-    const key = readKey();
+const ask = async ({ question, history = [], context = '', key: override }) => {
+    const key = override || readKey();
     if (!key) {
         const error = new Error('尚未設定 Gemini API 金鑰。');
         error.code = 'NO_KEY';
