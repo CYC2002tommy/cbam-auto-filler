@@ -17,7 +17,7 @@ Funded by the National Science and Technology Council (NSTC), Taiwan, ROC, under
 
 ## 使用者
 
-直接下載安裝檔：見 [docs/INSTALL.md](docs/INSTALL.md)。
+下載安裝檔：[Releases](https://github.com/CYC2002tommy/cbam-auto-filler/releases)。安裝步驟與首次開啟的系統警告處理：[docs/INSTALL.md](docs/INSTALL.md)。
 
 ## 開發
 
@@ -26,6 +26,7 @@ npm install
 npm run dev          # 瀏覽器開發 http://localhost:3000
 npm run desktop      # Electron 視窗（接開發伺服器）
 npm run dist:win     # 產生 Windows 安裝檔到 release/
+npm run dist:win:local # 同上，但用本機已下載的 Electron（Defender 會鎖住 win-unpacked.tmp 時用）
 npm run lint         # 型別檢查
 npm run template:map # 範本換新版時重新產生欄位對照表
 ```
