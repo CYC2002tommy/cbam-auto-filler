@@ -11,6 +11,7 @@ const templatePath = () =>
     path.join(isDev ? app.getAppPath() : process.resourcesPath, 'template', 'cbam-template-v2.1.1.xlsx');
 
 let mainWindow = null;
+let lastSaveDir = null;   // start the next dialog where the last file went
 
 const createWindow = () => {
     const dark = nativeTheme.shouldUseDarkColors;
@@ -35,6 +36,18 @@ const createWindow = () => {
     });
 
     mainWindow.once('ready-to-show', () => mainWindow.show());
+
+    // Safety net: anything that still downloads the browser way must also ask where to go,
+    // otherwise Electron quietly drops it in the default Downloads folder.
+    mainWindow.webContents.session.on('will-download', (event, item) => {
+        const suggested = item.getFilename();
+        const chosen = dialog.showSaveDialogSync(mainWindow, {
+            defaultPath: path.join(lastSaveDir || app.getPath('documents'), suggested),
+        });
+        if (!chosen) { item.cancel(); return; }
+        lastSaveDir = path.dirname(chosen);
+        item.setSavePath(chosen);
+    });
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         if (/^https?:\/\//.test(url)) shell.openExternal(url);
         return { action: 'deny' };
@@ -62,21 +75,23 @@ ipcMain.handle('project:open', async () => {
 ipcMain.handle('project:save', async (_event, { text, suggestedName }) => {
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
         title: '儲存 CBAM 專案',
-        defaultPath: suggestedName,
+        defaultPath: path.join(lastSaveDir || app.getPath('documents'), suggestedName),
         filters: [{ name: 'CBAM 專案', extensions: ['cbam'] }],
     });
     if (canceled || !filePath) return null;
     await fs.writeFile(filePath, text, 'utf8');
-    return path.basename(filePath);
+    lastSaveDir = path.dirname(filePath);
+    return filePath;
 });
 
 ipcMain.handle('file:saveBinary', async (_event, { data, suggestedName, filterName, extension }) => {
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
-        defaultPath: suggestedName,
+        defaultPath: path.join(lastSaveDir || app.getPath('documents'), suggestedName),
         filters: [{ name: filterName, extensions: [extension] }],
     });
     if (canceled || !filePath) return null;
     await fs.writeFile(filePath, Buffer.from(data));
+    lastSaveDir = path.dirname(filePath);
     return filePath;
 });
 

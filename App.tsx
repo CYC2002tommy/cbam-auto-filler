@@ -179,8 +179,13 @@ const Shell: React.FC = () => {
 
     const handleSaveProject = async () => {
         try {
-            const name = await saveProjectFile(formData, formData.a_instData.static.I20 as string);
-            if (name) toast.show({ message: t(`已儲存 ${name}`, `Saved ${name}`), tone: 'success' });
+            const saved = await saveProjectFile(formData, formData.a_instData.static.I20 as string);
+            if (saved) toast.show({
+                message: t(`已儲存到 ${saved}`, `Saved to ${saved}`),
+                tone: 'success',
+                duration: 8000,
+                action: window.cbam?.reveal ? { label: t('開啟資料夾', 'Show in folder'), onClick: () => window.cbam?.reveal?.(saved) } : undefined,
+            });
         } catch (e: any) {
             toast.show({ message: e?.message ?? String(e), tone: 'error', duration: 9000 });
         }
@@ -194,10 +199,15 @@ const Shell: React.FC = () => {
     const handleDownload = async () => {
         setIsSaving(true);
         try {
-            const filename = await exportDeclaration(formData, formData.a_instData.static.I20 as string);
-            toast.show({ message: t(`已產生 ${filename}`, `Created ${filename}`), tone: 'success' });
+            const saved = await exportDeclaration(formData, formData.a_instData.static.I20 as string);
+            toast.show({
+                message: t(`已儲存到 ${saved}`, `Saved to ${saved}`),
+                tone: 'success',
+                duration: 8000,
+                action: window.cbam?.reveal ? { label: t('開啟資料夾', 'Show in folder'), onClick: () => window.cbam?.reveal?.(saved) } : undefined,
+            });
         } catch (error: any) {
-            if (error?.name !== 'ExportCancelled') toast.show({ message: error?.message ?? String(error), tone: 'error', duration: 9000 });
+            if (error?.name !== 'SaveCancelled') toast.show({ message: error?.message ?? String(error), tone: 'error', duration: 9000 });
         } finally {
             setIsSaving(false);
         }

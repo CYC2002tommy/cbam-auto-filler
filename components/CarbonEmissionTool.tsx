@@ -6,6 +6,7 @@ import { TextInput, SelectInput, FieldLabel } from './FormControls';
 import { Heading, Group } from './Layout';
 import { useT, usePrefs } from '../ui/prefs';
 import { useToast } from '../ui/toast';
+import { saveBlob } from '../utils/saveFile';
 
 /*
  * Scenario calculator. Savings are marginal: each tonne of embedded emissions avoided
@@ -220,12 +221,16 @@ const CarbonEmissionTool: React.FC<{ e62Rows?: KeyValue[] }> = ({ e62Rows = [] }
                 .forEach(([y, f]) => { const r = db.addRow([y, f]); r.getCell(2).numFmt = '0.0%'; });
 
             const buffer = await wb.xlsx.writeBuffer();
-            const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
-            const a = Object.assign(document.createElement('a'), { href: url, download: 'CBAM情境試算.xlsx' });
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            toast.show({ message: t('情境試算 Excel 已開始下載', 'Scenario workbook download started'), tone: 'success' });
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const saved = await saveBlob(blob, 'CBAM情境試算.xlsx', 'Excel', 'xlsx');
+            toast.show({
+                message: t(`已儲存到 ${saved}`, `Saved to ${saved}`),
+                tone: 'success',
+                duration: 8000,
+                action: window.cbam?.reveal ? { label: t('開啟資料夾', 'Show in folder'), onClick: () => window.cbam?.reveal?.(saved) } : undefined,
+            });
         } catch (e: any) {
+            if (e?.name === 'SaveCancelled') return;
             toast.show({ message: t(`匯出失敗：${e?.message ?? e}`, `Export failed: ${e?.message ?? e}`), tone: 'error' });
         } finally {
             setExporting(false);

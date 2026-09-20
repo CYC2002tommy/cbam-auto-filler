@@ -1,5 +1,6 @@
 import type { FormData } from '../types';
 import { TEMPLATE_VERSION } from '../utils/xlsxWriter';
+import { saveBlob } from '../utils/saveFile';
 
 /**
  * A project file (.cbam) is the form data plus the template it was filled against.
@@ -61,7 +62,7 @@ export const clearDraft = () => {
 export const saveProjectFile = async (data: FormData, installationName?: string): Promise<string | null> => {
     const safe = (installationName || 'CBAM').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 40) || 'CBAM';
     if (window.cbam?.saveProject) return window.cbam.saveProject(serialiseProject(data), `${safe}.cbam`);
-    downloadProject(data, installationName);
+    await downloadProject(data, installationName);
     return `${safe}.cbam`;
 };
 
