@@ -1,4 +1,5 @@
-import React, { InputHTMLAttributes, SelectHTMLAttributes, useState, useRef, useEffect } from 'react';
+import React, { InputHTMLAttributes, SelectHTMLAttributes, useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check, Search } from 'lucide-react';
 import { splitLabel, usePrefs, useOptionLabel, useT } from '../ui/prefs';
 
@@ -104,17 +105,44 @@ interface SearchableSelectProps {
 export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, options, value, onChange, required, placeholder, code }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [rect, setRect] = useState({ top: 0, left: 0, width: 0 });
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const popoverRef = useRef<HTMLDivElement>(null);
     const optionLabel = useOptionLabel();
     const t = useT();
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) setIsOpen(false);
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+    /** Put the list under the trigger, or above it when there is no room below. */
+    const place = useCallback(() => {
+        const trigger = wrapperRef.current?.querySelector('button');
+        if (!trigger) return;
+        const r = trigger.getBoundingClientRect();
+        const below = window.innerHeight - r.bottom;
+        const height = popoverRef.current?.offsetHeight ?? 280;
+        const top = below < Math.min(height, 300) && r.top > below ? Math.max(8, r.top - height - 6) : r.bottom + 6;
+        setRect({ top, left: r.left, width: r.width });
     }, []);
+
+    useLayoutEffect(() => { if (isOpen) place(); }, [isOpen, place]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handlePointerDown = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (wrapperRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
+            setIsOpen(false);
+        };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsOpen(false); };
+        document.addEventListener('mousedown', handlePointerDown);
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('resize', place);
+        window.addEventListener('scroll', place, true);
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDown);
+            window.removeEventListener('keydown', onKey);
+            window.removeEventListener('resize', place);
+            window.removeEventListener('scroll', place, true);
+        };
+    }, [isOpen, place]);
 
     const textOf = (opt: string | SelectOption) => (typeof opt === 'string' ? optionLabel(opt) : optionLabel(opt.value, opt.label));
     const valueOf = (opt: string | SelectOption) => (typeof opt === 'string' ? opt : opt.value);
@@ -139,8 +167,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, o
                 <ChevronDown size={16} className={`shrink-0 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {isOpen && (
-                <div className="material-sheet absolute z-30 mt-1.5 w-full overflow-hidden rounded-[var(--radius-control)]" style={{ transformOrigin: 'top center' }}>
+            {isOpen && createPortal(
+                // Rendered at the top level: a row card clips its own overflow while it is
+                // being swiped, which would otherwise cut the list off.
+                <div
+                    ref={popoverRef}
+                    className="material-sheet fixed z-[80] overflow-hidden rounded-[var(--radius-control)]"
+                    style={{ top: rect.top, left: rect.left, width: rect.width, transformOrigin: 'top center' }}
+                >
                     <div className="flex items-center gap-2 px-3 py-2 hairline border-b">
                         <Search size={14} className="text-slate-400" />
                         <input
@@ -172,7 +206,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, o
                             <div className="px-3 py-2 text-sm text-slate-500">{t('沒有符合的結果', 'No results')}</div>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

@@ -124,4 +124,60 @@ const extract = async ({ dataBase64, mimeType, fields }) => {
     };
 };
 
-module.exports = { extract, hasKey: () => Boolean(readKey()) };
+
+const ASSISTANT_INSTRUCTIONS = `你是 CBAM 申報助手，協助台灣中小企業（多為螺絲、扣件、鋼鐵製品廠）填寫歐盟 CBAM 排放資料通報範本。
+
+回答規則：
+- 用繁體中文，直接講重點，不要客套。先給答案，再給理由。
+- 使用者問「這格要填什麼」時，說明欄位意義、數字從哪裡來（哪張單據、哪個部門），並舉一個扣件廠的例子。
+- 只講你有把握的規則。不確定就說不確定，並建議打 0800-583-885（申報諮詢專線）或查歐盟官方指引，不要編造條文編號或數字。
+- 不要重複使用者的問題，不要用條列式開場白。
+
+已知規則（可直接引用）：
+- 鋼鐵、鋁、氫屬於 CBAM 法規附件 II，正式期只計直接排放，用電的間接排放不計入（歐盟指引 5D）。水泥、肥料則要計入。
+- 螺絲、扣件的內含排放大多來自買進的鋼材（前驅物），要向鋼廠索取經查證的數據；拿不到就用歐盟預設值。
+- 預設值有加成：2026 年 +10%、2027 年 +20%、2028 年起 +30%，肥料一律 +1%（IR 2026/1740）。
+- 50 噸豁免看的是「進口商」全年從所有來源的進口總量，不是單一出口商的出口量。
+- 2026 年的進口要在 2027 年 9 月 30 日前申報；用實際值需經認可查證機構查證，第一年要到廠實地查訪。
+- 活動數據 × 淨熱值 × 排放係數 = 該排放源流的排放量；IPCC 2006 天然氣預設值為淨熱值 48 GJ/t、排放係數 56.1 tCO2/TJ。`;
+
+/** Free-text question about filling the declaration. Returns plain text. */
+const ask = async ({ question, history = [], context = '' }) => {
+    const key = readKey();
+    if (!key) {
+        const error = new Error('尚未設定 Gemini API 金鑰。');
+        error.code = 'NO_KEY';
+        throw error;
+    }
+    const contents = [
+        ...history.slice(-8).map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.text }] })),
+        { role: 'user', parts: [{ text: context ? `（使用者目前在「${context}」這一頁）
+${question}` : question }] },
+    ];
+    const post = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({
+            systemInstruction: { parts: [{ text: ASSISTANT_INSTRUCTIONS }] },
+            contents,
+            generationConfig: { temperature: 0.2, maxOutputTokens: 900 },
+        }),
+    });
+    let response = await post();
+    for (let attempt = 1; attempt <= 3 && response.status === 503; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, attempt * 4000));
+        response = await post();
+    }
+    if (response.status === 429) {
+        const error = new Error('Gemini 免費額度已用完，請稍後再試，或在設定中改用自己的 API 金鑰。');
+        error.code = 'RATE_LIMIT';
+        throw error;
+    }
+    if (!response.ok) throw new Error(`Gemini 回應 ${response.status}`);
+    const payload = await response.json();
+    const text = payload.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('') ?? '';
+    if (!text) throw new Error('Gemini 沒有回傳內容。');
+    return { text, model: payload.modelVersion ?? MODEL };
+};
+
+module.exports = { extract, ask, hasKey: () => Boolean(readKey()) };

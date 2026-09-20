@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, shell, nativeTheme } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell, nativeTheme } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
@@ -90,11 +90,57 @@ ipcMain.handle('ai:status', async () => ({ available: gemini.hasKey() || Boolean
 ipcMain.handle('ai:setKey', async (_event, key) => { userKey = key || null; return true; });
 ipcMain.handle('ai:extract', async (_event, { dataBase64, mimeType, fields }) => {
     if (userKey) process.env.GEMINI_API_KEY = userKey;
-    return gemini.extract({ dataBase64, mimeType, fields, pinModel: app.isPackaged });
+    return gemini.extract({ dataBase64, mimeType, fields });
 });
+ipcMain.handle('ai:ask', async (_event, { question, history, context }) => {
+    if (userKey) process.env.GEMINI_API_KEY = userKey;
+    return gemini.ask({ question, history, context });
+});
+
+
+/** Application menu. The items the renderer owns are sent to it as menu actions. */
+const send = (action) => mainWindow?.webContents.send('menu:action', action);
+
+const buildMenu = () => {
+    const isMac = process.platform === 'darwin';
+    const template = [
+        ...(isMac ? [{ role: 'appMenu' }] : []),
+        {
+            label: '檔案',
+            submenu: [
+                { label: '開新專案', accelerator: 'CmdOrCtrl+N', click: () => send('new') },
+                { label: '開啟專案…', accelerator: 'CmdOrCtrl+O', click: () => send('open') },
+                { type: 'separator' },
+                { label: '儲存專案…', accelerator: 'CmdOrCtrl+S', click: () => send('save') },
+                { label: '匯出申報表…', accelerator: 'CmdOrCtrl+E', click: () => send('export') },
+                { type: 'separator' },
+                { label: '讀取文件（AI）…', accelerator: 'CmdOrCtrl+I', click: () => send('ai-upload') },
+                { type: 'separator' },
+                isMac ? { role: 'close', label: '關閉視窗' } : { role: 'quit', label: '結束' },
+            ],
+        },
+        { label: '編輯', submenu: [
+            { role: 'undo', label: '復原' }, { role: 'redo', label: '重做' }, { type: 'separator' },
+            { role: 'cut', label: '剪下' }, { role: 'copy', label: '複製' }, { role: 'paste', label: '貼上' },
+            { role: 'selectAll', label: '全選' },
+        ] },
+        { label: '檢視', submenu: [
+            { role: 'reload', label: '重新載入' }, { role: 'resetZoom', label: '原始大小' },
+            { role: 'zoomIn', label: '放大' }, { role: 'zoomOut', label: '縮小' }, { type: 'separator' },
+            { role: 'togglefullscreen', label: '全螢幕' }, { role: 'toggleDevTools', label: '開發者工具' },
+        ] },
+        { label: '說明', submenu: [
+            { label: '說明與資源', click: () => send('help') },
+            { label: '歐盟 CBAM 官方網站', click: () => shell.openExternal('https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism_en') },
+            { label: '安裝與使用說明', click: () => shell.openExternal('https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism/cbam-communication-and-news_en') },
+        ] },
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+};
 
 app.whenReady().then(() => {
     createWindow();
+    buildMenu();
     app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 

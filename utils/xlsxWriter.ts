@@ -174,7 +174,15 @@ export const writeWorkbook = async (templateBytes: ArrayBuffer, writes: Write[])
     const relsXml = await zip.file('xl/_rels/workbook.xml.rels')!.async('string');
 
     const sheetPath = (name: string): string => {
-        const sheetTag = new RegExp(`<sheet[^>]*name="${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`).exec(workbookXml)?.[0];
+        // Sheet names are XML-escaped in workbook.xml: "C_Emissions&Energy" is stored
+        // as "C_Emissions&amp;Energy", so escape before matching.
+        const xmlName = name
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+        const sheetTag = new RegExp(`<sheet[^>]*name="${xmlName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`).exec(workbookXml)?.[0];
         const rid = sheetTag && /r:id="([^"]+)"/.exec(sheetTag)?.[1];
         if (!rid) throw new ExportError(`找不到工作表「${name}」`, name);
         const target = new RegExp(`<Relationship[^>]*Id="${rid}"[^>]*>`).exec(relsXml)?.[0];

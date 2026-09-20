@@ -2,10 +2,11 @@ import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from
 import { MotionConfig } from 'motion/react';
 import {
     Building2, Flame, Zap, Factory, Package, ClipboardList, Boxes, Leaf, Calculator, Download,
-    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles,
+    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles, Bot,
 } from 'lucide-react';
 import HelpPage from './components/HelpPage';
 import AiDropZone from './components/AiDropZone';
+import AiPage from './components/AiPage';
 import { UPLOAD_HINTS } from './ai/fields';
 import A_InstDataSection from './components/A_InstDataSection';
 import B_EmInstSection from './components/B_EmInstSection';
@@ -25,7 +26,7 @@ import { ToastProvider, useToast } from './ui/toast';
 import { UndoContext } from './ui/undo';
 import Sidebar, { type NavGroup } from './ui/Sidebar';
 
-type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export' | 'Help';
+type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export' | 'Help' | 'Ai';
 
 const FORM_SECTIONS: { id: SectionId; zh: string; en: string; sheet: string; icon: typeof Building2 }[] = [
     { id: 'A', zh: '設施資訊', en: 'Installation', sheet: 'A_InstData', icon: Building2 },
@@ -65,8 +66,10 @@ const Switch: React.FC<{ on: boolean; onChange: (v: boolean) => void; label: str
         {label}
         <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)}
             className={`relative h-[1.375rem] w-[2.375rem] shrink-0 rounded-full transition-colors ${on ? 'bg-emerald-500' : 'bg-slate-300'}`}>
-            <span className={`absolute top-0.5 h-[1.125rem] w-[1.125rem] rounded-full shadow transition-transform ${on ? 'translate-x-[1.125rem]' : 'translate-x-0.5'}`}
-                style={{ background: '#fff' }} />
+            <span
+                className="absolute left-[2px] top-[2px] h-[1.125rem] w-[1.125rem] rounded-full shadow transition-transform duration-200"
+                style={{ background: '#fff', transform: on ? 'translateX(1rem)' : 'translateX(0)' }}
+            />
         </button>
     </label>
 );
@@ -156,6 +159,23 @@ const Shell: React.FC = () => {
         }
     };
 
+    // Native menu items act on the renderer.
+    useEffect(() => {
+        if (!window.cbam?.onMenu) return;
+        return window.cbam.onMenu((action: string) => {
+            if (action === 'open') handleOpen();
+            else if (action === 'save') handleSaveProject();
+            else if (action === 'export') { setActive('Export'); handleDownload(); }
+            else if (action === 'new') {
+                if (window.confirm(t('開新專案會清空目前的資料，確定嗎？（建議先儲存專案）', 'Starting a new project clears the current data. Continue?'))) {
+                    setFormData(EMPTY_FORM);
+                }
+            }
+            else if (action === 'ai-upload') setActive('Ai');
+            else if (action === 'help') setActive('Help');
+        });
+    });
+
     const handleSaveProject = async () => {
         try {
             const name = await saveProjectFile(formData, formData.a_instData.static.I20 as string);
@@ -184,6 +204,7 @@ const Shell: React.FC = () => {
 
     const groups: NavGroup[] = [
         { zh: '申報表', en: 'Declaration', items: FORM_SECTIONS.map(s => ({ id: s.id, zh: s.zh, en: s.en, icon: s.icon, progress: progress[s.id] ?? null })) },
+        { zh: 'AI 輔助', en: 'AI', items: [{ id: 'Ai', zh: 'AI 助手', en: 'AI assistant', icon: Bot }] },
         {
             zh: '分析', en: 'Analysis', items: [
                 { id: 'Decarbon', zh: '減碳建議', en: 'Decarbonisation', icon: Leaf },
@@ -203,6 +224,7 @@ const Shell: React.FC = () => {
         : active === 'Decarbon' ? t('減碳建議', 'Decarbonisation')
         : active === 'Scenario' ? t('情境試算', 'Scenario calculator')
         : active === 'Help' ? t('說明與資源', 'Help & resources')
+        : active === 'Ai' ? t('AI 助手', 'AI assistant')
         : t('匯出申報表', 'Export');
     const idx = FORM_SECTIONS.findIndex(s => s.id === active);
 
@@ -234,8 +256,8 @@ const Shell: React.FC = () => {
 
     return (
         <UndoContext.Provider value={captureUndo}>
+          <AiDropZone form={formData} setForm={setFormData} e83Rows={formData.a_instData.e83}>
             <div className="flex h-screen overflow-hidden">
-                <AiDropZone form={formData} setForm={setFormData} e83Rows={formData.a_instData.e83} />
                 <Sidebar groups={groups} active={active} onSelect={select} lang={lang} header={header} footer={footer} />
 
                 <div ref={contentRef} className="relative flex-1 overflow-y-auto">
@@ -298,6 +320,7 @@ const Shell: React.FC = () => {
                         {active === 'Decarbon' && <DecarbonizationEngine />}
                         {active === 'Scenario' && <CarbonEmissionTool e62Rows={formData.a_instData.e62} />}
                         {active === 'Help' && <HelpPage />}
+                        {active === 'Ai' && <AiPage currentPage={pageTitle} />}
 
                         {active === 'Export' && (
                             <div className="space-y-6">
@@ -369,6 +392,7 @@ const Shell: React.FC = () => {
                     </main>
                 </div>
             </div>
+          </AiDropZone>
         </UndoContext.Provider>
     );
 };

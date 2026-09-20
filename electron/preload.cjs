@@ -14,5 +14,11 @@ contextBridge.exposeInMainWorld('cbam', {
         status: () => ipcRenderer.invoke('ai:status'),
         setKey: (key) => ipcRenderer.invoke('ai:setKey', key),
         extract: (payload) => ipcRenderer.invoke('ai:extract', payload),
+        ask: (payload) => ipcRenderer.invoke('ai:ask', payload),
+    },
+    onMenu: (handler) => {
+        const listener = (_event, action) => handler(action);
+        ipcRenderer.on('menu:action', listener);
+        return () => ipcRenderer.off('menu:action', listener);
     },
 });

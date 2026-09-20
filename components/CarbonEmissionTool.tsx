@@ -109,7 +109,11 @@ const CarbonEmissionTool: React.FC<{ e62Rows?: KeyValue[] }> = ({ e62Rows = [] }
             const ExcelJS = (await import('exceljs')).default;
             const wb = new ExcelJS.Workbook();
             wb.creator = 'CBAM Auto-Filler';
-            const ws = wb.addWorksheet('情境試算', { views: [{ showGridLines: false }] });
+            const ws = wb.addWorksheet('情境試算', {
+                views: [{ showGridLines: false, state: 'frozen', ySplit: 3 }],
+                properties: { tabColor: { argb: 'FF2F75B5' } },
+                pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+            });
             ws.columns = [{ width: 3 }, { width: 12 }, { width: 44 }, { width: 20 }, { width: 18 }, { width: 18 }, { width: 22 }];
             const thin = { style: 'thin', color: { argb: 'FFBFBFBF' } } as const;
             const border = { top: thin, left: thin, bottom: thin, right: thin };
@@ -183,9 +187,33 @@ const CarbonEmissionTool: React.FC<{ e62Rows?: KeyValue[] }> = ({ e62Rows = [] }
             section('五、預估節省成本總覽');
             const t1 = ws.addRow(['', '情境一 (€)', '']); t1.getCell(3).value = { formula: `SUM(G${g0}:G${g1})` }; result(t1.getCell(3));
             const t2 = ws.addRow(['', '情境二 (€)', '']); t2.getCell(3).value = { formula: `SUM(G${f0}:G${f1})` }; result(t2.getCell(3));
+            const t3 = ws.addRow(['', '情境三：使用預設值多付 (€)', '']); t3.getCell(3).value = { formula: `C${c5.number}` }; result(t3.getCell(3));
+            const tNet = ws.addRow(['', '合計影響 (€)：情境一 + 情境二 − 情境三', '']);
+            tNet.getCell(3).value = { formula: `C${t1.number}+C${t2.number}-C${t3.number}` };
+            result(tNet.getCell(3));
+            tNet.getCell(3).font = { bold: true, size: 13, color: { argb: 'FF006100' } };
+
+            // Assumptions and sources, so the numbers can be checked a year from now.
+            const notes = wb.addWorksheet('假設與資料來源', { properties: { tabColor: { argb: 'FF7F7F7F' } } });
+            notes.columns = [{ width: 26 }, { width: 86 }];
+            notes.addRow(['項目', '說明']).font = { bold: true };
+            [
+                ['產生時間', new Date().toLocaleString('zh-TW')],
+                ['節省成本的定義', '每少 1 公噸內含排放，進口商就少買 1 張 CBAM 憑證，價差為 max(0, 歐盟碳價 − 原產地已付碳價)。'],
+                ['免費配額調整', '調整額在各情境中相同，計算「差額」時會互相抵消，因此本表未逐年套用；前提是排放量仍高於調整後基準。'],
+                ['電網排放係數', `本表使用 ${num(gridFactor)} kgCO2e/kWh（預設為能源署公告值）。若進口商採用歐盟公告的台灣預設值，請自行改為該值。`],
+                ['情境一適用範圍', '鋼鐵、鋁、氫屬 CBAM 法規附件 II，正式期只計直接排放，電力不計入（歐盟指引 5D），故本表以 C 欄旗標設為 0。'],
+                ['綠電可用性', '實際申報時只有 PPA 或直接技術連結、且有智慧電表佐證的電力可用實際係數；台灣的 T-REC 不符合。'],
+                ['情境二計算方式', '多項措施依序作用於剩餘能耗，採連乘：總節能率 = 1 − Π(1 − 各措施節能率)。'],
+                ['情境二注意事項', '省煤器與空氣預熱回收同一股排煙熱，效果可能重疊，結果視為上限。措施為鍋爐節能措施，加熱爐需另行評估。'],
+                ['燃料係數來源', 'IPCC 2006 指南第 2 冊，表 1.2（淨熱值）與表 1.4（CO2 排放係數）。'],
+                ['預設值加成', 'IR 2026/1740（更正 IR 2025/2621）：水泥、鋼鐵、鋁、氫 2026 +10%、2027 +20%、2028 起 +30%；肥料一律 +1%。'],
+                ['預設值數據', '請以歐盟公告之台灣預設值為準（IR 2025/2621 附件 I，經 IR 2026/1740 更正）。'],
+                ['本表用途', '內部評估與溝通用，不是 CBAM 申報文件。申報請用「匯出申報表」產生的官方範本。'],
+            ].forEach(row => { const r = notes.addRow(row); r.getCell(2).alignment = { wrapText: true, vertical: 'top' }; r.getCell(1).font = { bold: true }; });
 
             // Carried over from the non-official "database" sheet of the old embedded template.
-            const db = wb.addWorksheet('CBAM 分年係數');
+            const db = wb.addWorksheet('CBAM 分年係數', { properties: { tabColor: { argb: 'FFBFBFBF' } } });
             db.columns = [{ width: 10 }, { width: 22 }];
             db.addRow(['年份', 'CBAM 係數（免費配額調整）']).font = { bold: true };
             [[2026, 0.025], [2027, 0.05], [2028, 0.1], [2029, 0.225], [2030, 0.485], [2031, 0.61], [2032, 0.735], [2033, 0.86], [2034, 1]]

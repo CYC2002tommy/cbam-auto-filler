@@ -7,6 +7,7 @@ import { useToast } from '../ui/toast';
 import type { FormData, KeyValue } from '../types';
 import { AI_FIELDS } from '../ai/fields';
 import { toProposals, applyProposals, type Proposal, type RawValue } from '../ai/apply';
+import { AiContext } from '../ai/context';
 
 const CONSENT_KEY = 'cbam.aiConsent';
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'application/pdf'];
@@ -25,13 +26,14 @@ interface Props {
     form: FormData;
     setForm: (next: FormData) => void;
     e83Rows: KeyValue[];
+    children?: React.ReactNode;
 }
 
 /**
  * Drop a bill, invoice or data sheet anywhere in the window and the AI proposes values.
  * Nothing is written until the user ticks it in the review sheet.
  */
-const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows }) => {
+const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
     const t = useT();
     const toast = useToast();
     const [dragging, setDragging] = useState(false);
@@ -125,6 +127,21 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows }) => {
         };
     }, [start]);
 
+    const pick = useCallback(() => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.accept = 'image/*,application/pdf';
+        input.onchange = () => { if (input.files?.length) start(Array.from(input.files)); };
+        input.click();
+    }, [start]);
+
+    const ask = useCallback(async (question: string, history: { role: 'user' | 'ai'; text: string }[], context: string) => {
+        if (!window.cbam?.ai?.ask) throw new Error(t('文字對話只在桌面版可用。', 'The assistant is only available in the desktop app.'));
+        const result = await window.cbam.ai.ask({ question, history: history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.text })), context });
+        return result.text;
+    }, [t]);
+
     const apply = () => {
         const next = applyProposals(form, proposals);
         setForm(next);
@@ -133,7 +150,7 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows }) => {
     };
 
     return (
-        <>
+        <AiContext.Provider value={{ available: Boolean(window.cbam?.ai), run: start, pick, ask }}>
             {dragging && (
                 <div className="pointer-events-none fixed inset-3 z-[70] flex flex-col items-center justify-center rounded-[var(--radius-sheet)] border-2 border-dashed border-indigo-500 bg-indigo-500/10 backdrop-blur-sm">
                     <Upload size={36} className="mb-3 text-indigo-500" />
@@ -175,7 +192,8 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows }) => {
                 onApply={apply}
                 onClose={() => setReviewOpen(false)}
             />
-        </>
+            {children}
+        </AiContext.Provider>
     );
 };
 
