@@ -36,6 +36,8 @@ npm run template:map # 範本換新版時重新產生欄位對照表
 `template/cbam-template-v2.1.1.xlsx` 是歐盟官方檔案，未經修改，來源與雜湊見 [template/SOURCES.md](template/SOURCES.md)。
 `template/templateMap.json` 由 `tools/gen_template_map.py` 產生，列出所有可填欄位、型別、選項清單與列數上限。**換範本時要重新產生，並重跑驗證。**
 
+`data/defaultValues.json` 是歐盟公告的台灣預設值（IR 2025/2621 附件 I，經 IR 2026/1740 更正），由 `tools/gen_default_values.py` 從官方 Excel 產生；台灣欄位為「–」的產品依附件 I 改用「其他國家和地區」的值。官方 Excel 不進 git：從 [Default values and benchmarks](https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism/cbam-legislation-and-guidance_en#default-values-and-benchmarks) 下載後存成 `reference/cbam-default-values-v2-20260806.xlsx`，再執行 `npm run defaults:map`。**歐盟發布新版時要重新產生。**
+
 ### 驗證
 
 ```bash

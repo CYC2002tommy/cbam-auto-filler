@@ -22,6 +22,7 @@ dist-electron
 
 # Large reference downloads (the V2.1.1 template itself is committed)
 reference/*.zip
+reference/*.xlsx
 reference/examples/
 
 # Editor directories and files

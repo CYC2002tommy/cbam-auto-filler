@@ -1,0 +1,1831 @@
+{
+ "country": "Taiwan",
+ "version": 2,
+ "date": "2026-08-06",
+ "notes": "Default values based on Annex I and II to Implementing Regulation (EU) 2026/1740 adopted on 20 July 2026",
+ "legalBasis": "IR 2025/2621 Annex I, as corrected by IR 2026/1740",
+ "source": "https://taxation-customs.ec.europa.eu/carbon-border-adjustment-mechanism/cbam-legislation-and-guidance_en#default-values-and-benchmarks",
+ "sha256": "900583811c7e1194799eb9bdbad2d6d7e1100f5a7d80a664c1584a8fce6f9f35",
+ "goods": [
+  {
+   "cn": "2507 00 80 80",
+   "description": "Calcined clay",
+   "sector": "Cement",
+   "total": 0.28,
+   "fromOther": true
+  },
+  {
+   "cn": "2523 10 00 10",
+   "description": "White clinker",
+   "sector": "Cement",
+   "total": 1.37,
+   "fromOther": true
+  },
+  {
+   "cn": "2523 10 00 90",
+   "description": "Other clinker including grey clinker",
+   "sector": "Cement",
+   "total": 0.86,
+   "fromOther": false
+  },
+  {
+   "cn": "2523 21 00",
+   "description": "White Portland cement",
+   "sector": "Cement",
+   "total": 1.45,
+   "fromOther": true
+  },
+  {
+   "cn": "2523 29 00",
+   "description": "Grey Portland cement",
+   "sector": "Cement",
+   "total": 0.89,
+   "fromOther": false
+  },
+  {
+   "cn": "2523 30 00",
+   "description": "Aluminous cement",
+   "sector": "Cement",
+   "total": 2.03,
+   "fromOther": true
+  },
+  {
+   "cn": "2523 90 00 10",
+   "description": "White hydraulic cement",
+   "sector": "Cement",
+   "total": 1.49,
+   "fromOther": true
+  },
+  {
+   "cn": "2523 90 00 90",
+   "description": "Other hydraulic cements including grey hydraulic cements",
+   "sector": "Cement",
+   "total": 1.37,
+   "fromOther": true
+  },
+  {
+   "cn": "2808 00 00",
+   "description": "Nitric acid; sulphonitric acids",
+   "sector": "Fertilisers",
+   "total": 2.16,
+   "fromOther": false
+  },
+  {
+   "cn": "2814 10 00",
+   "description": "Anhydrous ammonia",
+   "sector": "Fertilisers",
+   "total": 2.2,
+   "fromOther": false
+  },
+  {
+   "cn": "2814 20 00",
+   "description": "Ammonia in aqueous solution",
+   "sector": "Fertilisers",
+   "total": 0.66,
+   "fromOther": false
+  },
+  {
+   "cn": "2834 21 00",
+   "description": "Nitrate of potassium",
+   "sector": "Fertilisers",
+   "total": 1.83,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 10 12",
+   "description": "Urea in aqueous solution, containing >45% nitrogen in relation to the weight of the dry product and containing =>31,8% but <=33,2 % by weight of urea (excl. that in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.46,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 10 15",
+   "description": "Urea in aqueous solution, containing >45% nitrogen in relation to the weight of the dry product and containing >33,2% but <=55% by weight of urea (excl. that in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.74,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 10 19",
+   "description": "Urea, whether or not in aqueous solution, containing >45% nitrogen in relation to the weight of the dry product (excl. that in tablets or similar forms, or in packages with a gross weight of <= 10 kg, or in aqueous solution containing =>31,8% but <=55% by weight of urea)",
+   "sector": "Fertilisers",
+   "total": 1.39,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 10 90",
+   "description": "Urea, whether or not in aqueous solution, containing <= 45% by weight of nitrogen on the dry anhydrous product (excl. goods of this chapter in tablets or similar forms or in packages of a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.36,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 21 00",
+   "description": "Ammonium sulphate (excl. that in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.66,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 29 00",
+   "description": "Double salts and mixtures of ammonium sulphate and ammonium nitrate",
+   "sector": "Fertilisers",
+   "total": 1.27,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 30 10",
+   "description": "Ammonium nitrate in aqueous solution (excl. that in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.41,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 30 90",
+   "description": "Ammonium nitrate (excl. that in aqueous solution, in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 40 10",
+   "description": "Mixtures of ammonium nitrate with calcium carbonate or other inorganic non-fertilising substances, for use as fertilisers, containing <= 28% nitrogen by weight (excl. those in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.85,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 40 90",
+   "description": "Mixtures of ammonium nitrate with calcium carbonate or other inorganic non-fertilising substances, for use as fertilisers, containing > 28% nitrogen by weight (excl. those in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.85,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 50 00",
+   "description": "Sodium nitrate (excl. that in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 3.37,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 60 00",
+   "description": "Double salts and mixtures of calcium nitrate and ammonium nitrate (excl. those in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.82,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 80 00",
+   "description": "Mixtures of urea and ammonium nitrate in aqueous or ammoniacal solution (excl. those in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.41,
+   "fromOther": false
+  },
+  {
+   "cn": "3102 90 00",
+   "description": "Mineral or chemical nitrogen fertilisers (excl. urea; ammonium sulphate; ammonium nitrate; sodium nitrate; double salts and mixtures of ammonium nitrate with ammonium sulphate or calcium; mixtures of urea and ammonium nitrate in aqueous or ammoniacal solution; mixtures of ammonium nitrate and calcium carbonate or other non-fertilising inorganic elements; in tablets or similar in packages <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.48,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 10 00",
+   "description": "Mineral or chemical fertilisers of animal or vegetable origin, in tablets or similar forms, or in packages with a gross weight of <= 10 kg",
+   "sector": "Fertilisers",
+   "total": 0.77,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 20 10",
+   "description": "Mineral or chemical fertilisers containing phosphorus and potassium, with a nitrogen content > 10 % by weight on the dry anhydrous product (excl. those in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.97,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 20 90",
+   "description": "Mineral or chemical fertilisers containing nitrogen, phosphorus and potassium, with a nitrogen content <= 10 % by weight on the dry anhydrous product (excl. those in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.67,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 30 00",
+   "description": "Diammonium hydrogenorthophosphate \"diammonium phosphate\" (excl. that in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.54,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 40 00",
+   "description": "Ammonium dihydrogenorthophosphate \"monoammonium phosphate\", whether or not mixed with diammonium hydrogenorthophosphate \"diammonium phosphate\" (excl. that in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.36,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 51 00",
+   "description": "Other mineral or chemical fertilisers containing the two fertilising elements nitrogen and phosphorus (nitrates and phosphates)",
+   "sector": "Fertilisers",
+   "total": 1.32,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 59 00",
+   "description": "Other mineral or chemical fertilisers containing the two fertilising elements nitrogen and phosphorus (excl. nitrates and phosphates)",
+   "sector": "Fertilisers",
+   "total": 0.64,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 90 20",
+   "description": "Mineral or chemical fertilisers containing the two fertilising elements nitrogen and potassium, or one principal fertilising substance only, incl. mixtures of animal or vegetable fertilisers with chemical or mineral fertilisers, containing > 10% nitrogen by weight (excl. in tablets or similar forms, or in packages with a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 1.25,
+   "fromOther": false
+  },
+  {
+   "cn": "3105 90 80",
+   "description": "Mineral or chemical fertilisers containing the two fertilising elements nitrogen and potassium, or one main fertilising element, incl. mixtures of animal or vegetable fertilisers with chemical or mineral fertilisers, not containing nitrogen or with a nitrogen content, by weight, of <= 10% (excl. in tablets or similar forms or in packages of a gross weight of <= 10 kg)",
+   "sector": "Fertilisers",
+   "total": 0.65,
+   "fromOther": false
+  },
+  {
+   "cn": "7601",
+   "description": "Unwrought aluminium",
+   "sector": "Aluminium",
+   "total": 0.36,
+   "fromOther": false
+  },
+  {
+   "cn": "7603",
+   "description": "Aluminium powders and flakes",
+   "sector": "Aluminium",
+   "total": 0.47,
+   "fromOther": false
+  },
+  {
+   "cn": "7604 10 10",
+   "description": "Bars and rods",
+   "sector": "Aluminium",
+   "total": 0.69,
+   "fromOther": false
+  },
+  {
+   "cn": "7604 10 90",
+   "description": "Profiles",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7604 21 00",
+   "description": "Hollow profiles",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7604 29 10",
+   "description": "Bars and rods",
+   "sector": "Aluminium",
+   "total": 0.69,
+   "fromOther": false
+  },
+  {
+   "cn": "7604 29 90",
+   "description": "Profiles",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7605",
+   "description": "Aluminium wire",
+   "sector": "Aluminium",
+   "total": 0.69,
+   "fromOther": false
+  },
+  {
+   "cn": "7606",
+   "description": "Aluminium plates, sheets and strip, of a thickness exceeding 0,2 mm",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7607",
+   "description": "Aluminium foil (whether or not printed or backed with paper, paperboard, plastics or similar backing materials) of a thickness (excluding any backing) not exceeding 0,2 mm",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7608",
+   "description": "Aluminium tubes and pipes",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7609 00 00",
+   "description": "Aluminium tube or pipe fittings (for example, couplings, elbows, sleeves)",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7610 10 00",
+   "description": "Doors, windows and their frames and thresholds for doors",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7610 90",
+   "description": "Other",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7610 90 10",
+   "description": "Bridges and bridge-sections, towers and lattice masts",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7610 90 90",
+   "description": "Other",
+   "sector": "Aluminium",
+   "total": 0.71,
+   "fromOther": false
+  },
+  {
+   "cn": "7611 00 00",
+   "description": "Aluminium reservoirs, tanks, vats and similar containers, for any material (other than compressed or liquefied gas), of a capacity exceeding 300 litres, whether or not lined or heat-insulated, but not fitted with mechanical or thermal equipment",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7612",
+   "description": "Aluminium casks, drums, cans, boxes and similar containers (including rigid or collapsible tubular containers), for any material (other than compressed or liquefied gas), of a capacity not exceeding 300 litres, whether or not lined or heat-insulated, but not fitted with mechanical or thermal equipment",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7613 00 00",
+   "description": "Aluminium containers for compressed or liquefied gas",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7614",
+   "description": "Stranded wire, cables, plaited bands and the like, of aluminium, not electrically insulated",
+   "sector": "Aluminium",
+   "total": 0.69,
+   "fromOther": false
+  },
+  {
+   "cn": "7616 10 00",
+   "description": "Nails, tacks, staples (other than those of heading 8305), screws, bolts, nuts, screw hooks, rivets, cotters, cotter pins, washers and similar articles",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7616 91 00",
+   "description": "Cloth, grill, netting and fencing, of aluminium wire",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7616 99 10",
+   "description": "Cast",
+   "sector": "Aluminium",
+   "total": 0.47,
+   "fromOther": false
+  },
+  {
+   "cn": "7616 99 90",
+   "description": "Other",
+   "sector": "Aluminium",
+   "total": 1.15,
+   "fromOther": false
+  },
+  {
+   "cn": "2804 10 00",
+   "description": "Hydrogen",
+   "sector": "Hydrogen",
+   "total": 10.82,
+   "fromOther": false
+  },
+  {
+   "cn": "2601 12 00",
+   "description": "Agglomerated iron ores and concentrates (excl. roasted iron pyrites)",
+   "sector": "Iron and steel",
+   "total": 0.22,
+   "fromOther": false
+  },
+  {
+   "cn": "7201",
+   "description": "Pig iron and spiegeleisen, in pigs, blocks or other primary forms",
+   "sector": "Iron and steel",
+   "total": 1.86,
+   "fromOther": false
+  },
+  {
+   "cn": "7202 11",
+   "description": "Ferro-manganese, containing by weight > 2% of carbon",
+   "sector": "Iron and steel",
+   "total": 1.69,
+   "fromOther": true
+  },
+  {
+   "cn": "7202 19",
+   "description": "Ferro-manganese, containing by weight <= 2% carbon",
+   "sector": "Iron and steel",
+   "total": 5.59,
+   "fromOther": true
+  },
+  {
+   "cn": "7202 41",
+   "description": "Ferro-chromium, containing by weight > 4% of carbon",
+   "sector": "Iron and steel",
+   "total": 2.35,
+   "fromOther": true
+  },
+  {
+   "cn": "7202 49",
+   "description": "Ferro-chromium, containing by weight <= 4% of carbon",
+   "sector": "Iron and steel",
+   "total": 2.87,
+   "fromOther": true
+  },
+  {
+   "cn": "7202 60 00",
+   "description": "Ferro-nickel",
+   "sector": "Iron and steel",
+   "total": 4.014,
+   "fromOther": true
+  },
+  {
+   "cn": "7203",
+   "description": "Ferrous products obtained by direct reduction of iron ore and other spongy ferrous products, in lumps, pellets or similar forms; iron having a minimum purity by weight of 99,94%, in lumps, pellets or similar forms",
+   "sector": "Iron and steel",
+   "total": 1.325,
+   "fromOther": true
+  },
+  {
+   "cn": "7205",
+   "description": "Granules and powders of pig iron, spiegeleisen, iron or steel (excl. granules and powders of ferro-alloys, turnings and filings of iron or steel, radioactive iron powders \"isotopes\" and certain low-calibre, substandard balls for ballbearings)",
+   "sector": "Iron and steel",
+   "total": 1.87,
+   "fromOther": false
+  },
+  {
+   "cn": "7206 10 00",
+   "description": "Ingots, of iron and non-alloy steel (excl. remelted scrap ingots, continuous cast products, iron of heading 7203)",
+   "sector": "Iron and steel",
+   "total": 1.94,
+   "fromOther": false
+  },
+  {
+   "cn": "7206 90 00",
+   "description": "Iron and non-alloy steel, in puddled bars or other primary forms (excl. ingots, remelted scrap ingots, continuous cast products, iron of heading 7203)",
+   "sector": "Iron and steel",
+   "total": 1.94,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 11 11",
+   "description": "Semi-finished products, of non-alloy free-cutting steel, containing by weight < 0,25% carbon, of square or rectangular cross-section, the width < twice the thickness, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 11 14",
+   "description": "Semi-finished products, of iron or non-alloy steel, containing by weight < 0,25% carbon, of square or rectangular cross-section, the width < twice the thickness of <= 130 mm, rolled or obtained by continuous casting (excl. free-cutting steel)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 11 16",
+   "description": "Semi-finished products, of iron or non-alloy steel, containing by weight < 0,25% carbon, of square or rectangular cross-section, the width < twice the thickness of > 130 mm, rolled or obtained by continuous casting (excl. free-cutting steel)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 11 90",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight < 0,25% carbon, of rectangular cross-section, the width < twice the thickness, forged",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 12 10",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight < 0,25 of carbon, of rectangular \"other than square\" cross-section, the width measuring >= twice the thickness, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 12 90",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight < 0,25% carbon, of rectangular \"other than square\" cross-section, the width >= twice the thickness, forged",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 19 12",
+   "description": "Semi-finished products, of iron or non-alloy steel, containing by weight < 0,25% carbon, of circular or polygonal cross-section, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 19 19",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight < 0,25% carbon, of circular or polygonal cross-section, forged",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 19 80",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight < 0,25% carbon (excl. semi-products, of square, rectangular, circular or polygonal cross-section)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 11",
+   "description": "Semi-finished products, of non-alloy free-cutting steel, containing by weight >= 0,25% carbon, of square or rectangular cross-section, the width < twice the thickness, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 15",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,25% but < 0,6% carbon, of square or rectangular cross-section, the width < twice the thickness, rolled or obtained by continuous casting (excl. free-cutting steel)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 17",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,6% carbon, of square or rectangular cross-section, the width < twice the thickness, rolled or obtained by continuous casting (excl. free-cutting steel)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 19",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,25% carbon, of square or rectangular cross-section, the width < twice the thickness, forged",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 32",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,25 of carbon, of rectangular \"other than square\" cross-section, the width measuring >= twice the thickness, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 39",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,25% carbon, of rectangular \"other than square\" cross-section and the width >= twice the thickness, forged",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 52",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,25% carbon, of circular or polygonal cross-section, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 59",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,6% carbon, of circular or polygonal cross-section, forged",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7207 20 80",
+   "description": "Semi-finished products of iron or non-alloy steel, containing by weight >= 0,25% carbon (excl. those of square, rectangular, circular or polygonal cross-section)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7208",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width >= 600 mm, hot-rolled, not clad, plated or coated",
+   "sector": "Iron and steel",
+   "total": 2.31,
+   "fromOther": false
+  },
+  {
+   "cn": "7209",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width of >= 600 mm, cold-rolled \"cold-reduced\", not clad, plated or coated",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7210",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width >= 600 mm, hot-rolled or cold-rolled \"cold-reduced\", clad, plated or coated",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7211 13 00",
+   "description": "Flat-rolled products of iron or non-alloy steel, simply hot-rolled on four faces or in a closed box pass, not clad, plated or coated, of a width of > 150 mm but < 600 mm and a thickness of >= 4 mm, not in coils, without patterns in relief, commonly known as \"wide flats\"",
+   "sector": "Iron and steel",
+   "total": 2.31,
+   "fromOther": false
+  },
+  {
+   "cn": "7211 14 00",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width < 600 mm, not further worked than hot-rolled, not clad, plated or coated, of a thickness of >= 4,75 mm (excl. \"wide flats\")",
+   "sector": "Iron and steel",
+   "total": 2.31,
+   "fromOther": false
+  },
+  {
+   "cn": "7211 19 00",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width < 600 mm, simply hot-rolled, not clad, plated or coated, of a thickness < 4,75 mm (excl. \"wide flats\")",
+   "sector": "Iron and steel",
+   "total": 2.31,
+   "fromOther": false
+  },
+  {
+   "cn": "7211 23",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width of < 600 mm, simply cold-rolled \"cold-reduced\", not clad, plated or coated, containing by weight < 0,25% of carbon",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7211 29 00",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width of < 600 mm, simply cold-rolled \"cold-reduced\", not clad, plated or coated, containing by weight >= 0,25% of carbon",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7211 90",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width of < 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and further worked, but not clad, plated or coated",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7212",
+   "description": "Flat-rolled products of iron or non-alloy steel, of a width of < 600 mm, hot-rolled or cold-rolled \"cold-reduced\", clad, plated or coated",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7213",
+   "description": "Bars and rods of iron or non-alloy steel, hot-rolled, in irregularly wound coils",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7214 10 00",
+   "description": "Bars and rods, of iron or non-alloy steel, not further worked than forged (excl. in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.474,
+   "fromOther": false
+  },
+  {
+   "cn": "7214 20 00",
+   "description": "Bars and rods, of iron or non-alloy steel, with indentations, ribs, groves or other deformations produced during the rolling process",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7214 30 00",
+   "description": "Bars and rods, of non-alloy free-cutting steel, not further worked than hot-rolled, hot-drawn or hot-extruded (excl. containing indentations, ribs, grooves or other deformations produced during the rolling process or twisted after rolling)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7214 91",
+   "description": "Bars and rods, of iron or non-alloy steel, not further worked than hot-rolled, hot-drawn or hot-extruded, of rectangular \"other than square\" cross-section (excl. containing indentations, ribs, grooves or other deformations produced during the rolling process, bars and rods twisted after rolling and free-cutting steel)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7214 99",
+   "description": "Bars and rods, of iron or non-alloy steel, only hot-rolled, only hot-drawn or only hot-extruded (excl. of rectangular [other than square] cross-section and those containing indentations, ribs, grooves or other deformations produced during the rolling process, and of non-alloy free-cutting steel)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7215",
+   "description": "Bars and rods, of iron or non-alloy steel, cold-formed or cold-finished, whether or not further worked, or hot-formed and further worked, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7216",
+   "description": "Angles, shapes and sections of iron or non-alloy steel, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7217 10",
+   "description": "Wire of iron or non-alloy steel, in coils, not plated or coated, whether or not polished (excl. bars and rods)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7217 20",
+   "description": "Wire of iron or non-alloy steel, in coils, plated or coated with zinc (excl. bars and rods)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7217 30",
+   "description": "Wire of iron or non-alloy steel, in coils, plated or coated with base metals (excl. plated or coated with zinc, and bars and rods)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7217 90",
+   "description": "Wire of iron or non-alloy steel, in coils, plated or coated (excl. plated or coated with base metals, and bars and rods)",
+   "sector": "Iron and steel",
+   "total": 2.298,
+   "fromOther": false
+  },
+  {
+   "cn": "7218 10 00",
+   "description": "Steel, stainless, in ingots and other primary forms (excl. waste and scrap in ingot form, and products obtained by continuous casting)",
+   "sector": "Iron and steel",
+   "total": 5.006,
+   "fromOther": true
+  },
+  {
+   "cn": "7218 91",
+   "description": "Semi-finished products of stainless steel, of rectangular \"other than square\" cross-section",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7218 99 11",
+   "description": "Semi-finished products of stainless steel, of square cross-section, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7218 99 19",
+   "description": "Semi-finished products of stainless steel, of square cross-section, forged",
+   "sector": "Iron and steel",
+   "total": 5.006,
+   "fromOther": true
+  },
+  {
+   "cn": "7218 99 20",
+   "description": "Semi-finished products of stainless steel, of circular cross-section or of cross-section other than square or rectangular, rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7218 99 80",
+   "description": "Semi-finished products of stainless steel, forged (excl. products of square or rectangular cross-section)",
+   "sector": "Iron and steel",
+   "total": 5.006,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 11 00",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, in coils, of a thickness of > 10 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 12",
+   "description": "Flat-rolled products of stainless steel, of a width of>= 600 mm, not further worked than hot-rolled, in coils, of a thickness of >= 4,7 mm and <= 10 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 13",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, in coils, of a thickness of >= 3 mm and < 4,75 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 14",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, in coils, of a thickness of < 3 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 21",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, not in coils, of a thickness of > 10 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 22",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, not in coils, of a thickness of >= 4,75 mm and <= 10 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 23 00",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, not in coils, of a thickness of >= 3 mm and < 4,75 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 24 00",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than hot-rolled, not in coils, of a thickness of < 3 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 31 00",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than cold-rolled \"cold-reduced\", of a thickness of >= 4,75 mm",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 32",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than cold-rolled \"cold-reduced\", of a thickness of >= 3 mm but < 4,75 mm",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 33",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than cold-rolled \"cold-reduced\", of a thickness of > 1 mm but < 3 mm",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 34",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than cold-rolled \"cold-reduced\", of a thickness of >= 0,5 mm but <= 1 mm",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 35",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, not further worked than cold-rolled \"cold-reduced\", of a thickness of < 0,5 mm",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7219 90",
+   "description": "Flat-rolled products of stainless steel, of a width of >= 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and further worked",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7220 11 00",
+   "description": "Flat-rolled products of stainless steel, of a width of < 600 mm, not further worked than hot-rolled, of a thickness of >= 4,75 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7220 12 00",
+   "description": "Flat-rolled products of stainless steel, of a width of < 600 mm, not further worked than hot-rolled, of a thickness of < 4,75 mm",
+   "sector": "Iron and steel",
+   "total": 4.94,
+   "fromOther": true
+  },
+  {
+   "cn": "7220 20",
+   "description": "Flat-rolled products of stainless steel, of a width of < 600 mm, not further worked than cold-rolled \"cold-reduced\"",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7220 90",
+   "description": "Flat-rolled products of stainless steel, of a width of < 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and further worked",
+   "sector": "Iron and steel",
+   "total": 5.02,
+   "fromOther": true
+  },
+  {
+   "cn": "7221",
+   "description": "Bars and rods of stainless steel, hot-rolled, in irregularly wound coils",
+   "sector": "Iron and steel",
+   "total": 4.82,
+   "fromOther": true
+  },
+  {
+   "cn": "7222 11",
+   "description": "Bars and rods of stainless steel, only hot-rolled, only hot-drawn or only hot-extruded, of circular cross-section",
+   "sector": "Iron and steel",
+   "total": 4.82,
+   "fromOther": true
+  },
+  {
+   "cn": "7222 19",
+   "description": "Bars and rods of stainless steel, only hot-rolled, only hot-drawn or only extruded (excl. of circular cross-section)",
+   "sector": "Iron and steel",
+   "total": 4.82,
+   "fromOther": true
+  },
+  {
+   "cn": "7222 20",
+   "description": "Other bars and rods of stainless steel, not further worked than cold-formed or cold-finished",
+   "sector": "Iron and steel",
+   "total": 4.82,
+   "fromOther": true
+  },
+  {
+   "cn": "7222 30",
+   "description": "Other bars and rods of stainless steel, cold-formed or cold-finished and further worked, or not further worked than forged, or forged, or hot-formed by other means and further worked, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 5.006,
+   "fromOther": true
+  },
+  {
+   "cn": "7222 40",
+   "description": "Angles, shapes and sections of stainless steel, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 4.82,
+   "fromOther": true
+  },
+  {
+   "cn": "7223 00",
+   "description": "Wire of stainless steel, in coils (excl. bars and rods)",
+   "sector": "Iron and steel",
+   "total": 4.82,
+   "fromOther": true
+  },
+  {
+   "cn": "7224 10",
+   "description": "Steel, alloy, other than stainless, in ingots or other primary forms (excl. waste and scrap in ingot form, and products obtained by continuous casting)",
+   "sector": "Iron and steel",
+   "total": 2.28,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 02",
+   "description": "Semi-finished products of tool steel",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 03",
+   "description": "Semi-finished products of high-speed steel, of square or rectangular cross-section, hot-rolled or obtained by continuous casting the width measuring < twice the thickness",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 05",
+   "description": "Semi-finished products of steel containing by weight <= 0,7% of carbon, 0,5% to 1,2% of manganese, 0,6% to 2,3% of silicon, or of steel containing by weight >= 0,0008% of boron with any other element < the minimum content referred to in Note 1 f to chapter 72, of square or rectangular cross-section, hot rolled or obtained by continuous casting, the width measuring < twice the thickness",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 07",
+   "description": "Semi-finished products of alloy steel other than stainless steel, of square or rectangular cross-section, hot-rolled or obtained by continuous casting, the width measuring < twice the thickness (excl. of tool steel, high-speed steel and articles of subheading 7224.90.05)",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 14",
+   "description": "Semi-finished products of alloy steel other than stainless steel, of square or rectangular cross-section, hot-rolled or obtained by continuous casting, the width measuring >= twice the thickness (excl. of tool steel)",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 18",
+   "description": "Semi-finished products of alloy steel other than stainless steel, of square or rectangular cross-section, forged (excl. of tool steel)",
+   "sector": "Iron and steel",
+   "total": 2.28,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 31",
+   "description": "Semi-finished products of steel containing by weight 0,9% to 1,15% carbon, 0,5% to 2% of chromium and, if present, <= 0,5% of molybdenum, cut into shapes other than square or rectangular, hot-rolled or obtained by continuous casting",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 38",
+   "description": "Semi-finished products of alloy steel, other than stainless steel, cut into shapes other than square or rectangular, hot-rolled or obtained by continuous casting (excl. of tool steel and products containing by weight 0,9% to 1,15% of carbon, 0,5% to 2% of chromium and, if present, <= 0,5% of molybdenum)",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7224 90 90",
+   "description": "Semi-finished products of alloy steel, other than stainless steel, forged (excl. of tool steel and products of square or rectangular, circular or polygamol cross-section)",
+   "sector": "Iron and steel",
+   "total": 2.28,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 11 00",
+   "description": "Flat-rolled products of silicon-electrical steel, of a width of >= 600 mm, grain-oriented",
+   "sector": "Iron and steel",
+   "total": 2.83,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 19 10",
+   "description": "Flat-rolled products of silicon-electrical steel, of a width of >= 600 mm, hot-rolled",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 19 90",
+   "description": "Flat-rolled products of silicon-electrical steel, of a width of >= 600 mm, cold-rolled \"cold-reduced\", non-grain-oriented",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 30",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of >= 600 mm, not further worked than hot-rolled, in coils (excl. products of silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 40",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of >= 600 mm, not further worked than hot-rolled, not in coils (excl. products of silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 50",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of >= 600 mm, not further worked than cold-rolled \"cold-reduced\" (excl. products of silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 91 00",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of >= 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and electrolytically plated or coated with zinc (excl. products of silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 92 00",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of >= 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and plated or coated with zinc (excl. electrolytically plated or coated and products of silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7225 99 00",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of >= 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and further worked (excl. plated or coated with zinc and products of silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.364,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 11 00",
+   "description": "Flat-rolled products of silicon-electrical steel, of a width of < 600 mm, hot-rolled or cold-rolled \"cold-reduced\", grain-oriented",
+   "sector": "Iron and steel",
+   "total": 2.83,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 19 10",
+   "description": "Flat-rolled products of silicon-electrical steel, of a width of < 600 mm, not further worked than hot-rolled",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 19 80",
+   "description": "Flat-rolled products of silicon-electrical steel, of a width of < 600 mm, cold-rolled \"cold-reduced\", whether or not further worked, or hot-rolled and further worked, non-grain-oriented",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 20 00",
+   "description": "Flat-rolled products of high-speed steel, of a width of <= 600 mm, hot-rolled or cold-rolled \"cold-reduced\"",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 91",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of < 600 mm, not further worked than hot-rolled (excl. products of high-speed steel or silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.15,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 92 00",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of < 600 mm, not further worked than cold-rolled \"cold-reduced\" (excl. products of high-speed steel or silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7226 99",
+   "description": "Flat-rolled products of alloy steel other than stainless, of a width of < 600 mm, hot-rolled or cold-rolled \"cold-reduced\" and further worked (excl. products of high-speed steel or silicon-electrical steel)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7227",
+   "description": "Bars and rods of alloy steel other than stainless, hot-rolled, in irregularly wound coils",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 10 20",
+   "description": "Bars and rods of high-speed steel, not further worked than hot-rolled, hot-drawn or extruded, and hot-rolled, hot-drawn or extruded, not further worked than clad (excl. semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 10 50",
+   "description": "Bars and rods of high-speed steel, forged (excl. semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.28,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 10 90",
+   "description": "Bars and rods of high-speed steel, not further worked than cold-formed or cold-finished, whether or not further worked, or hot-formed and further worked (excl. forged products, semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 20",
+   "description": "Bars and rods of silico-manganese steel (excl. semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 30",
+   "description": "Bars and rods of alloy steel other than stainless, not further worked than hot-rolled, hot-drawn or extruded (excl. products of high-speed steel or silico-manganese steel, semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 40",
+   "description": "Bars and rods of alloy steel other than stainless, not further worked than forged (excl. products of high-speed steel or silico-manganese steel, semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.28,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 50",
+   "description": "Bars and rods of alloy steel other than stainless, not further worked than cold-formed or cold-finished (excl. products of high-speed steel or silico-manganese steel, semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 60",
+   "description": "Bars and rods of alloy steel other than stainless, cold-formed or cold-finished and further worked or hot-formed and further worked, n.e.s. (excl. products of high-speed steel or silico-manganese steel, semi-finished products, flat-rolled products and hot-rolled bars and rods in irregularly wound coils)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 70",
+   "description": "Angles, shapes and sections of alloy steel other than stainless, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7228 80 00",
+   "description": "Hollow drill bars and rods, of alloy or non-alloy steel",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7229",
+   "description": "Wire of alloy steel other than stainless, in coils (excl. bars and rods)",
+   "sector": "Iron and steel",
+   "total": 2.17,
+   "fromOther": false
+  },
+  {
+   "cn": "7301",
+   "description": "Sheet piling of iron or steel, whether or not drilled, punched or made from assembled elements; welded angles, shapes and sections, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7302",
+   "description": "Railway or tramway track construction material of iron or steel, the following : rails, check-rails and rack rails, switch blades, crossing frogs, point rods and other crossing pieces, sleepers \"cross-ties\", fish-plates, chairs, chair wedges, sole plates \"base plates\", rail clips, bedplates, ties and other material specialised for jointing or fixing rails",
+   "sector": "Iron and steel",
+   "total": 2.383,
+   "fromOther": false
+  },
+  {
+   "cn": "7303 00",
+   "description": "Tubes, pipes and hollow profiles, of cast iron",
+   "sector": "Iron and steel",
+   "total": 2.473,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 11 00",
+   "description": "Line pipe of a kind used for oil or gas pipelines, seamless, of stainless steel",
+   "sector": "Iron and steel",
+   "total": 2.513,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 19",
+   "description": "Line pipe of a kind used for oil or gas pipelines, seamless, of iron or steel (excl. products of stainless steel or of cast iron)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 22 00",
+   "description": "Drill pipe, seamless, of stainless steel, of a kind used in drilling for oil or gas",
+   "sector": "Iron and steel",
+   "total": 2.513,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 23 00",
+   "description": "Drill pipe, seamless, of a kind used in drilling for oil or gas, of iron or steel (excl. products of stainless steel or of cast iron)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 24 00",
+   "description": "Casing and tubing, seamless, of a kind used for drilling for oil or gas, of stainless steel",
+   "sector": "Iron and steel",
+   "total": 2.513,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 29",
+   "description": "Casing and tubing, seamless, of iron or steel, of a kind used in drilling for oil or gas (excl. products of cast iron)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 31",
+   "description": "Tubes, pipes and hollow profiles, seamless, of circular cross-section, of iron or non-alloy steel, cold-drawn or cold-rolled \"cold-reduced\" (excl. cast iron products and line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used for drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 39",
+   "description": "Tubes, pipes and hollow profiles, seamless, of circular cross-section, of iron or non-alloy steel, not cold-drawn or cold-rolled \"cold-reduced\" (excl. cast iron products, line pipe of a kind used for oil or gas pipelines, casing and tubing of a kind used for drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 41 00",
+   "description": "Tubes, pipes and hollow profiles, seamless, of circular cross-section, of stainless steel, cold-drawn or cold-rolled \"cold-reduced\" (excl. line pipe of a kind used for oil or gas pipelines, casing and tubing of a kind used for drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.513,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 49",
+   "description": "Tubes, pipes and hollow profiles, seamless, of circular cross-section, of stainless steel, not cold-drawn or cold-rolled \"cold-reduced\" (excl. line pipe of a kind used for oil or gas pipelines or of a kind used for drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.513,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 51",
+   "description": "Tubes, pipes and hollow profiles, seamless, of circular cross-section, of alloy steel other than stainless, cold-drawn or cold-rolled \"cold-reduced\" (excl. line pipe of a kind used for oil or gas pipelines, casing and tubing of a kind used for drilling for oil)",
+   "sector": "Iron and steel",
+   "total": 2.233,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 59",
+   "description": "Tubes, pipes and hollow profiles, seamless, of circular cross-section, of alloy steel other than stainless, not cold-drawn or cold-rolled \"cold-reduced\" (excl. line pipe of a kind used for oil or gas pipelines, casing and tubing of a kind used for drilling for oil)",
+   "sector": "Iron and steel",
+   "total": 2.233,
+   "fromOther": false
+  },
+  {
+   "cn": "7304 90 00",
+   "description": "Tubes, pipes and hollow profiles, seamless, of non-circular cross-section, of iron or steel (excl. products of cast iron)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7305",
+   "description": "Tubes and pipes, having circular cross-sections and an external diameter of > 406,4 mm, of flat-rolled products of iron or steel \"e.g., welded, riveted or similarly closed\"",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 11 00",
+   "description": "Line pipe of a kind used for oil or gas pipelines, welded, of flat-rolled products of stainless steel, of an external diameter of <= 406,4 mm",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 19 00",
+   "description": "Line pipe of a kind used for oil or gas pipelines, welded, of flat-rolled products of iron or steel, of an external diameter of <= 406,4 mm (excl. products of stainless steel or of cast iron)",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 21 00",
+   "description": "Casing and tubing of a kind used in drilling for oil or gas, welded, of flat-rolled products of stainless steel, of an external diameter of <= 406,4 mm",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 29 00",
+   "description": "Casing and tubing of a kind used in drilling for oil or gas, welded, of flat-rolled products of iron or steel, of an external diameter of <= 406,4 mm (excl. products of stainless steel or of cast iron)",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 12",
+   "description": "Precision tubes, welded, of circular cross-section, of iron or non-alloy steel, cold-drawn or cold-rolled \"cold-reduced\"",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 18",
+   "description": "Precision tubes, welded, of circular cross-section, of iron or non-alloy steel (excl. cold-drawn or cold-rolled)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 41",
+   "description": "Threaded or threadable tubes \"gas pipe\", welded, of circular cross-section, of iron or non-alloy steel, plated or coated with zinc",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 49",
+   "description": "Threaded or threadable tubes \"gas pipe\", welded, of circular cross-section, of iron or non-alloy steel (excl. products plated or coated with zinc)",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 72",
+   "description": "Other tubes, pipes and hollow profiles, welded, of circular cross-section, of iron or non-alloy steel, of an external diameter of <= 168,3 mm, plated or coated with zinc (excl. line pipe of a kind used for oil or gas pipelines or casing and tubingof a kind used in drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 77",
+   "description": "Other tubes, pipes and hollow profiles, welded, of circular cross-section, of iron or non-alloy steel of an external diameter of <= 168,3 mm (excl. plated or coated with zinc and line pipe of a kind used for oil or gas pipelines, casing and tubing of a kind used in drilling for oil or gas, precision tubes and threaded or threadable tubes \"gas pipe\")",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 30 80",
+   "description": "Tubes, pipes and hollow profiles, welded, having a circular cross-section, of iron or steel, of an external diameter of > 168,3 mm but <= 406,4 mm (excl. line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used in drilling for oil or gas, or precision steel tubes, electrical conduit tubes or threaded or threadable tubes \"gas pipe\")",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 40 20",
+   "description": "Tubes, pipes and hollow profiles, welded, of circular cross-section, of stainless steel, cold-drawn or cold-rolled \"cold-reduced\" (excl. products having internal and external circular cross-sections and an external diameter of > 406,4 mm, and line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used in drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 40 80",
+   "description": "Tubes, pipes and hollow profiles, welded, of circular cross-section, of stainless steel (excl. products cold-drawn or cold-rolled \"cold-reduced\", tubes and pipes having internal and external circular cross-sections and an external diameter of > 406,4 mm, and line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used in drilling for oil or gas)",
+   "sector": "Iron and steel",
+   "total": 2.523,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 50 21",
+   "description": "Precision steel tubes, welded, of circular cross-section, of alloy steel other than stainless, cold-drawn or cold-rolled \"cold-reduced\"",
+   "sector": "Iron and steel",
+   "total": 2.273,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 50 29",
+   "description": "Precision steel tubes, welded, of circular cross-section, of alloy steel other than stainless (excl. cold-drawn or cold-rolled)",
+   "sector": "Iron and steel",
+   "total": 2.253,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 50 80",
+   "description": "Tubes, pipes and hollow profiles, welded, of circular cross-section, of alloy steel other than stainless (excl. tubes and pipes having internal and external circular cross-sections and an external diameter of > 406,4 mm, and line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used in drilling for oil or gas, and precision steel tubes)",
+   "sector": "Iron and steel",
+   "total": 2.273,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 61 10",
+   "description": "Tubes and pipes and hollow profiles, welded, of square or rectangular cross-section, of stainless steel",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 61 92",
+   "description": "Tubes and pipes and hollow profiles, welded, of square or rectangular cross-section, of iron or steel other than stainless steel, with a wall thickness of <= 2 mm",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 61 99",
+   "description": "Tubes and pipes and hollow profiles, welded, of square or rectangular cross-section, of iron or steel other than stainless steel, with a wall thickness of > 2 mm",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 69 10",
+   "description": "Tubes, pipes and hollow profiles, welded, of non-circular cross-section, of stainless steel (excl. tubes and pipes having internal and external circular cross-sections and an external diameter of > 406,4 mm, line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used in drilling for oil or gas, and tubes and pipes and hollow profiles of square or rectangular cross-section)",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 69 90",
+   "description": "Tubes, pipes and hollow profiles, welded, of non-circular cross-section, of iron or steel other than stainless steel (excl. tubes and pipes having internal and external circular cross-sections and an external diameter of > 406,4 mm, line pipe of a kind used for oil or gas pipelines or casing and tubing of a kind used in drilling for oil or gas, and tubes and pipes and hollow profiles of square or rectangular cross-section)",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7306 90 00",
+   "description": "Tubes, pipes and hollow profiles \"e.g., open seam, riveted or similarly closed\", of iron or steel (excl. of cast iron, seamless or welded tubes and pipes and tubes and pipes having internal and external circular cross-sections and an external diameter of > 406,4 mm)",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 11",
+   "description": "Tube or pipe fittings of non-malleable cast iron",
+   "sector": "Iron and steel",
+   "total": 2.373,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 19 10",
+   "description": "Tube or pipe fittings of cast iron (excl. of non-malleable)",
+   "sector": "Iron and steel",
+   "total": 2.373,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 19 90",
+   "description": "Cast tube or pipe fittings of steel",
+   "sector": "Iron and steel",
+   "total": 2.453,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 21 00",
+   "description": "Flanges of stainless steel (excl. cast products)",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 22",
+   "description": "Threaded elbows, bends and sleeves of stainless steel (excl. cast products)",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 23",
+   "description": "Butt welding tube or pipe fittings of stainless steel (excl. cast products)",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 29",
+   "description": "Tube or pipe fittings of stainless steel (excl. cast products, flanges, threaded elbows, bends and sleeves and butt weldings fittings)",
+   "sector": "Iron and steel",
+   "total": 2.543,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 91 00",
+   "description": "Flanges of iron or steel (excl. cast or stainless products)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 92",
+   "description": "Threaded elbows, bends and sleeves, of stainless steel (excl. cast or stainless products)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 93",
+   "description": "Butt welding fittings of iron or steel (excl. cast iron or stainless steel products, and flanges)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7307 99",
+   "description": "Tube or pipe fittings, of iron or steel (excl. cast iron or stainless steel products; flanges; threaded elbows, bends and sleeves; butt welding fittings)",
+   "sector": "Iron and steel",
+   "total": 2.313,
+   "fromOther": false
+  },
+  {
+   "cn": "7308",
+   "description": "Structures and parts of structures \"e.g., bridges and bridge-sections, lock-gates, towers, lattice masts, roofs, roofing frameworks, doors and windows and their frames and thresholds for doors, shutters, balustrades, pillars and columns\", of iron or steel; plates, rods, angles, shapes, sections, tubes and the like, prepared for use in structures, of iron or steel (excl. prefabricated buildings of heading 9406)",
+   "sector": "Iron and steel",
+   "total": 2.423,
+   "fromOther": false
+  },
+  {
+   "cn": "7309",
+   "description": "Reservoirs, tanks, vats and similar containers, of iron or steel, for any material \"other than compressed or liquefied gas\", of a capacity of > 300 l, not fitted with mechanical or thermal equipment, whether or not lined or heat-insulated (excl. containers specifically constructed or equipped for one or more types of transport)",
+   "sector": "Iron and steel",
+   "total": 2.443,
+   "fromOther": false
+  },
+  {
+   "cn": "7310",
+   "description": "Tanks, casks, drums, cans, boxes and similar containers, of iron or steel, for any material \"other than compressed or liquefied gas\", of a capacity of <= 300 l, not fitted with mechanical or thermal equipment, whether or not lined or heat-insulated, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  },
+  {
+   "cn": "7311 00",
+   "description": "Containers of iron or steel, for compressed or liquefied gas (excl. containers specifically constructed or equipped for one or more types of transport)",
+   "sector": "Iron and steel",
+   "total": 2.423,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 11 00",
+   "description": "Coach screws of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 12 10",
+   "description": "Wood screws of stainless steel (excl. coach screws)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 12 90",
+   "description": "Wood screws of iron or steel other than stainless (excl. coach screws)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 13 00",
+   "description": "Screw hooks and screw rings, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 14 10",
+   "description": "Self-tapping screws, of stainless steel (excl. wood screws)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 14 91",
+   "description": "Spaced-thread screws of iron or steel other than stainless",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 14 99",
+   "description": "Self-tapping screws of iron or steel other than stainless (excl. spaced-thread screws and wood screws)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 15",
+   "description": "Threaded screws and bolts, of iron or steel, whether or not with their nuts and washers (excl. coach screws and other wood screws, screw hooks and screw rings, self-tapping screws, lag screws, stoppers, plugs and the like, threaded)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 16",
+   "description": "Nuts of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 19 00",
+   "description": "Threaded articles, of iron or steel, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 21 00",
+   "description": "Spring washers and other lock washers, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 22 00",
+   "description": "Washers of iron or steel (excl. spring washers and other lock washers)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 23 00",
+   "description": "Rivets of iron or steel (excl. tubular and bifurcated rivets for particular uses)",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 24 00",
+   "description": "Cotters and cotter pins, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7318 29 00",
+   "description": "Non-threaded articles, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.707,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 11 00",
+   "description": "Grinding balls and similar articles for mills, of iron or steel, forged or stamped, but not further worked",
+   "sector": "Iron and steel",
+   "total": 2.453,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 19",
+   "description": "Articles of iron or steel, forged or stamped, but not further worked, n.e.s. (excl. grinding balls and similar articles for mills)",
+   "sector": "Iron and steel",
+   "total": 2.453,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 20 00",
+   "description": "Articles of iron or steel wire, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.303,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 30",
+   "description": "Ladders and steps, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.303,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 40",
+   "description": "Pallets and similar platforms for handling goods, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.303,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 50",
+   "description": "Reels for cables, piping and the like, of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.303,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 60",
+   "description": "Ventilators, non-mechanical, guttering, hooks and like articles used in the building industry, n.e.s., of iron or steel",
+   "sector": "Iron and steel",
+   "total": 2.303,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 92",
+   "description": "Articles of iron or steel, open-die forged, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.453,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 94",
+   "description": "Articles of iron or steel, closed-die forged, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.453,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 96",
+   "description": "Sintered articles of iron or steel, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.453,
+   "fromOther": false
+  },
+  {
+   "cn": "7326 90 98",
+   "description": "Articles of iron or steel, n.e.s.",
+   "sector": "Iron and steel",
+   "total": 2.333,
+   "fromOther": false
+  }
+ ]
+}

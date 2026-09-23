@@ -13,6 +13,7 @@
     "lint": "tsc --noEmit",
     "preview": "vite preview",
     "template:map": "python tools/gen_template_map.py --report",
+    "defaults:map": "python tools/gen_default_values.py --report",
     "desktop": "electron .",
     "dist": "vite build && electron-builder --publish never",
     "dist:win": "vite build && electron-builder --win --publish never",
