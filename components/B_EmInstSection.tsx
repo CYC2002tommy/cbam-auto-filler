@@ -8,7 +8,8 @@ import { Heading } from './Layout';
 import EFDefaultsSearchModal from './EFDefaultsSearchModal';
 import type { FuelDefault } from '../data/fuels';
 import { SwipeRow, AddRowButton, CAPS } from '../ui/rows';
-import { useT, useLabel } from '../ui/prefs';
+import { useT, useLabel, usePrefs } from '../ui/prefs';
+import { ncvWarning, efWarning, factorWarning } from '../guide/warnings';
 import { useUndo } from '../ui/undo';
 
 interface Props {
@@ -27,7 +28,7 @@ const PFC_SLOPE = [
 ];
 const PFC_OVERVOLTAGE = [
     { col: 'aj', label: 'Anode effect overvoltage (B: AEO) (陽極效應過電壓)' },
-    { col: 'ak', label: 'Current efficiency (B: CE) (電流效率)' },
+    { col: 'ak', label: 'Current efficiency (B: CE) (電流效率)', unit: '%' },
     { col: 'al', label: 'Overvoltage coefficient (B: OVC) (過電壓係數)' },
 ];
 const PFC_COMMON = [
@@ -40,6 +41,8 @@ const B_EmInstSection: React.FC<Props> = ({ data, setData }) => {
     const [currentRowIndex, setCurrentRowIndex] = useState<number | null>(null);
     const t = useT();
     const label = useLabel();
+    const { lang } = usePrefs();
+    const say = (m: { zh: string; en: string } | null) => (m ? m[lang] : null);
     const captureUndo = useUndo();
 
     const handleDynamicChange = <T extends keyof B_EmInst,>(section: T, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -88,6 +91,7 @@ const B_EmInstSection: React.FC<Props> = ({ data, setData }) => {
                                         <button
                                             type="button"
                                             onClick={() => { setCurrentRowIndex(index); setIsSearchModalOpen(true); }}
+                                            data-tour="fuel-defaults"
                                             className="pressable mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-indigo-600 hover:bg-indigo-500/10"
                                         >
                                             <Search size={12} /> {t('套用燃料預設值（IPCC）', 'Use fuel defaults (IPCC)')}
@@ -97,17 +101,19 @@ const B_EmInstSection: React.FC<Props> = ({ data, setData }) => {
                                 <div />
                                 <TextInput label="Activity data (AD) (活動數據)" id={`d17-f-${index}`} name="f" type="number" required value={row.f as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
                                 <SelectInput label="AD unit (活動數據單位)" id={`d17-g-${index}`} name="g" options={D17_OPTIONS_G_UNIT} required value={row.g as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
-                                <TextInput label="Net calorific value (NCV) (淨熱值)" id={`d17-h-${index}`} name="h" type="number" unit="GJ/t" required={!isProcessEmissions && !isMassBalance} value={row.h as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                <TextInput label="Net calorific value (NCV) (淨熱值)" id={`d17-h-${index}`} name="h" type="number" unit={row.g === '1000Nm3' ? 'GJ/1000Nm³' : 'GJ/t'} required={!isProcessEmissions && !isMassBalance} value={row.h as string || ''} onChange={e => handleDynamicChange('d17', index, e)}
+                                    warning={say(ncvWarning(row.h, row.g, row.k))} />
                                 {!isMassBalance ? (
                                     <>
-                                        <TextInput label="Emission factor (EF) (排放係數)" id={`d17-j-${index}`} name="j" type="number" required value={row.j as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
+                                        <TextInput label="Emission factor (EF) (排放係數)" id={`d17-j-${index}`} name="j" type="number" required value={row.j as string || ''} onChange={e => handleDynamicChange('d17', index, e)}
+                                            warning={say(efWarning(row.j, row.k))} />
                                         <SelectInput label="EF unit (排放係數單位)" id={`d17-k-${index}`} name="k" options={D17_OPTIONS_K_EF_UNIT} required value={row.k as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
                                     </>
                                 ) : (
                                     <TextInput label="Carbon content (碳含量)" id={`d17-l-${index}`} name="l" type="number" required value={row.l as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
                                 )}
-                                {isCombustion && <TextInput label="Oxidation factor (OxF) (氧化因子)" id={`d17-n-${index}`} name="n" type="number" unit="%" value={row.n as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />}
-                                {isProcessEmissions && <TextInput label="Conversion factor (ConvF) (轉化因子)" id={`d17-p-${index}`} name="p" type="number" unit="%" value={row.p as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />}
+                                {isCombustion && <TextInput label="Oxidation factor (OxF) (氧化因子)" id={`d17-n-${index}`} name="n" type="number" unit="%" value={row.n as string || ''} onChange={e => handleDynamicChange('d17', index, e)} warning={say(factorWarning(row.n))} />}
+                                {isProcessEmissions && <TextInput label="Conversion factor (ConvF) (轉化因子)" id={`d17-p-${index}`} name="p" type="number" unit="%" value={row.p as string || ''} onChange={e => handleDynamicChange('d17', index, e)} warning={say(factorWarning(row.p))} />}
                                 <TextInput label="Biomass content (BioC) (生質含量)" id={`d17-r-${index}`} name="r" type="number" unit="%" value={row.r as string || ''} onChange={e => handleDynamicChange('d17', index, e)} />
                             </div>
                         </SwipeRow>
@@ -116,7 +122,7 @@ const B_EmInstSection: React.FC<Props> = ({ data, setData }) => {
                 <AddRowButton count={data.d17.length} cap={CAPS['b.d17']} onAdd={() => addRow('d17')} label={t('新增排放源流', 'Add source stream')} />
             </section>
 
-            <CollapsibleSection title="(b) PFC emissions, primary aluminium only (PFC 排放，僅原鋁生產)" isSubSection>
+            <CollapsibleSection title="(b) PFC emissions, primary aluminium only (PFC 排放，僅原鋁生產)" isSubSection tour="b-pfc">
                 <div className="space-y-4">
                     {data.d98.map((row, index) => {
                         const method = row.d as string;

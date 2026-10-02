@@ -15,6 +15,7 @@ import {
 import { TextInput, SelectInput, SearchableSelect } from './FormControls';
 import { Heading, Group } from './Layout';
 import { CAPS } from '../ui/rows';
+import { isPercentCell } from '../utils/xlsxWriter';
 import { useT, useLabel } from '../ui/prefs';
 import { useUndo } from '../ui/undo';
 
@@ -104,7 +105,8 @@ const Summary_ProductsSection: React.FC<Props> = ({ data, setData, e83Rows }) =>
             case 'cp_currency': return <SearchableSelect key={key} label={title} code={code} id={id} options={CURRENCY_OPTIONS} value={value} onChange={v => update(key, v)} />;
             default: {
                 const textual = key.includes('id') || key.includes('reducing');
-                const pct = /(^|_)(mn|cr|ni|other_alloys|carbon|other_mat|pre_scrap|non_alu|nitric_acid|urea|n_total|n_nh4|n_no3|n_urea|n_other|share|rebate_share)$/.test(key);
+                // The template formats these cells as percentages; the user types 18 for 18% and export writes 0.18.
+                const pct = isPercentCell('Summary_Products', code);
                 return <TextInput key={key} label={title} code={code} id={id} type={textual ? 'text' : 'number'} unit={pct ? '%' : undefined} value={value} onChange={e => update(key, e.target.value)} />;
             }
         }
@@ -129,7 +131,7 @@ const Summary_ProductsSection: React.FC<Props> = ({ data, setData, e83Rows }) =>
                         {(p.name as string) || t(`產品 ${i + 1}`, `Product ${i + 1}`)}
                     </button>
                 ))}
-                <button type="button" onClick={add} disabled={data.length >= cap}
+                <button type="button" onClick={add} disabled={data.length >= cap} data-tour="add-product"
                     className="pressable inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-500/10 disabled:opacity-40"
                     title={data.length >= cap ? t(`已達官方範本上限 ${cap} 項`, `Official template holds ${cap} products`) : undefined}>
                     <Plus size={15} /> {t('新增產品', 'Add product')}

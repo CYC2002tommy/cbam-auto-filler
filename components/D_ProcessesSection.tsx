@@ -64,7 +64,7 @@ const D_ProcessesSection: React.FC<Props> = ({ data, setData, e83Rows, e62Rows }
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('生產過程', 'Production processes')}>
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('生產過程', 'Production processes')} data-tour="process-tabs">
                 {processes.map(p => (
                     <button
                         key={p.id}

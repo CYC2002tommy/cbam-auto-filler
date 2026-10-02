@@ -3,7 +3,8 @@ import type { KeyValue } from '../types';
 import { ROUTE_MAP, D_PROCESSES_L67_DETAILED_OPTIONS } from '../constants';
 import { TextInput, SelectInput } from './FormControls';
 import { Heading, Group } from './Layout';
-import { useT, useLabel, useOptionLabel } from '../ui/prefs';
+import { useT, useLabel, useOptionLabel, usePrefs } from '../ui/prefs';
+import { soldWarning } from '../guide/warnings';
 
 interface Props {
     processId: string;
@@ -33,6 +34,7 @@ const ProcessForm: React.FC<Props> = ({ processId, productName, data, setData, a
     const t = useT();
     const label = useLabel();
     const optionLabel = useOptionLabel();
+    const { lang } = usePrefs();
     const k = Number(processId.slice(1));
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -78,7 +80,8 @@ const ProcessForm: React.FC<Props> = ({ processId, productName, data, setData, a
             <Group>
                 <Heading label="(b) Produced for the market (銷往市場的數量)" />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <TextInput label="Produced for the market (銷往市場)" code="L27" id={`${processId}-L27`} name="L27" type="number" unit="t" required value={data.L27 as string || ''} onChange={handleChange} />
+                    <TextInput label="Produced for the market (銷往市場)" code="L27" id={`${processId}-L27`} name="L27" type="number" unit="t" required value={data.L27 as string || ''} onChange={handleChange}
+                        warning={soldWarning(data.L27, totalProduction)?.[lang]} />
                 </div>
             </Group>
 

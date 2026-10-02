@@ -1,7 +1,11 @@
 import React, { InputHTMLAttributes, SelectHTMLAttributes, useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Check, Search } from 'lucide-react';
+import { ChevronDown, Check, Search, HelpCircle } from 'lucide-react';
 import { splitLabel, usePrefs, useOptionLabel, useT } from '../ui/prefs';
+import { GUIDE } from '../guide/content';
+import { guideKey } from '../guide/keys';
+import { useGuideScope } from '../guide/scope';
+import { FieldHelpPanel, FieldWarning } from './FieldGuide';
 
 const CELL = /^[A-Z]{1,3}\d{1,4}$/;
 
@@ -29,6 +33,57 @@ export const FieldLabel: React.FC<{ label: string; htmlFor?: string; required?: 
 
 const codeFor = (id?: string, code?: string) => code ?? (id && CELL.test(id) ? id : undefined);
 
+/**
+ * Label, control and beginner guidance for one field. The guidance is found from the page
+ * the field sits on (GuideScope) and its id/cell code, so call sites stay unchanged:
+ * a one-line hint under the control while beginner guidance is on, and a "?" that opens
+ * the full explanation and the AI at any time.
+ */
+export const FieldShell: React.FC<{
+    id: string; label: string; required?: boolean; code?: string; warning?: string | null;
+    className?: string; children: React.ReactNode;
+}> = ({ id, label, required, code, warning, className, children }) => {
+    const { lang, guide } = usePrefs();
+    const t = useT();
+    const scope = useGuideScope();
+    const [open, setOpen] = useState(false);
+    const cell = codeFor(id, code);
+    const key = guideKey(scope.section, id, cell);
+    const entry = key ? GUIDE[key] : undefined;
+    if (import.meta.env.DEV && scope.section && !entry) console.warn(`[guide] no entry for ${scope.section} ${id} (${key})`);
+    const { zh, en } = splitLabel(label);
+    const shown = lang === 'zh' ? (zh || en) : (en || zh);
+    return (
+        <div className={className} data-guide={entry ? key! : undefined} data-guide-missing={scope.section && !entry ? id : undefined}>
+            <div className="flex items-start gap-1">
+                <div className="min-w-0 flex-1"><FieldLabel label={label} htmlFor={id} required={required} code={cell} /></div>
+                {entry && (
+                    <button type="button" data-guide-help onClick={() => setOpen(o => !o)} aria-expanded={open} aria-controls={`${id}-guide`}
+                        aria-label={t(`「${shown}」的說明`, `Help for "${shown}"`)} title={t('說明與問 AI', 'Help and Ask AI')}
+                        className={`pressable -mt-0.5 shrink-0 rounded-full p-0.5 ${open ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}>
+                        <HelpCircle size={16} />
+                    </button>
+                )}
+            </div>
+            {children}
+            {warning && <FieldWarning text={warning} />}
+            {entry && guide && !open && <p className="mt-1 text-xs leading-snug text-slate-500">{entry[lang].short}</p>}
+            {entry && open && <FieldHelpPanel id={id} label={shown} code={cell} entry={entry} />}
+        </div>
+    );
+};
+
+/** Checks every number field gets for free; callers add their own context-aware warning. */
+const useNumberWarning = (type?: string, unit?: string, value?: unknown) => {
+    const t = useT();
+    if (type !== 'number' || value === undefined || value === null || String(value).trim() === '') return null;
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    if (n < 0) return t('這一格不能是負數。', 'This value cannot be negative.');
+    if (unit === '%' && n > 100) return t('百分比要在 0 到 100 之間（18 代表 18%）。', 'A percentage must be between 0 and 100 (18 means 18%).');
+    return null;
+};
+
 const controlBase =
     'field block w-full px-3 py-2 text-[0.9375rem] text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50';
 
@@ -37,11 +92,14 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     id: string;
     unit?: string;
     code?: string;
+    /** A non-blocking hint shown under the field, e.g. a value that looks like the wrong unit. */
+    warning?: string | null;
 }
 
-export const TextInput: React.FC<InputProps> = ({ label, id, required, unit, code, ...props }) => (
-    <div>
-        <FieldLabel label={label} htmlFor={id} required={required} code={codeFor(id, code)} />
+export const TextInput: React.FC<InputProps> = ({ label, id, required, unit, code, warning, ...props }) => {
+    const generic = useNumberWarning(props.type, unit, props.value);
+    return (
+    <FieldShell id={id} label={label} required={required} code={code} warning={warning || generic}>
         <div className="relative">
             <input
                 id={id}
@@ -54,8 +112,9 @@ export const TextInput: React.FC<InputProps> = ({ label, id, required, unit, cod
                 <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-slate-500">{unit}</span>
             )}
         </div>
-    </div>
-);
+    </FieldShell>
+    );
+};
 
 export interface SelectOption {
     value: string;
@@ -74,8 +133,7 @@ export const SelectInput: React.FC<SelectProps> = ({ label, id, options, require
     const optionLabel = useOptionLabel();
     const t = useT();
     return (
-        <div>
-            <FieldLabel label={label} htmlFor={id} required={required} code={codeFor(id, code)} />
+        <FieldShell id={id} label={label} required={required} code={code}>
             <div className="relative">
                 <select id={id} required={required} {...props} className={`${controlBase} appearance-none pr-9`}>
                     {includeEmpty && <option value="">{t('請選擇…', 'Select…')}</option>}
@@ -87,7 +145,7 @@ export const SelectInput: React.FC<SelectProps> = ({ label, id, options, require
                 </select>
                 <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />
             </div>
-        </div>
+        </FieldShell>
     );
 };
 
@@ -151,8 +209,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, o
     const selected = options.find(opt => valueOf(opt) === value);
 
     return (
-        <div className="relative" ref={wrapperRef}>
-            <FieldLabel label={label} htmlFor={id} required={required} code={codeFor(id, code)} />
+        <FieldShell id={id} label={label} required={required} code={code} className="relative">
+          <div ref={wrapperRef}>
             <button
                 id={id}
                 type="button"
@@ -209,7 +267,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({ label, id, o
                 </div>,
                 document.body,
             )}
-        </div>
+          </div>
+        </FieldShell>
     );
 };
 

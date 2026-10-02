@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useRef, useLayoutEffect, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useLayoutEffect, useEffect, useMemo } from 'react';
 import { MotionConfig } from 'motion/react';
 import {
     Building2, Flame, Zap, Factory, Package, ClipboardList, Boxes, Leaf, Calculator, Download,
-    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles, Bot,
+    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles, Bot, PlayCircle, ExternalLink,
 } from 'lucide-react';
 import HelpPage from './components/HelpPage';
 import AiDropZone from './components/AiDropZone';
@@ -25,6 +25,10 @@ import { loadDraft, saveDraft, parseProject, saveProjectFile, openProjectFile } 
 import { ToastProvider, useToast } from './ui/toast';
 import { UndoContext } from './ui/undo';
 import Sidebar, { type NavGroup } from './ui/Sidebar';
+import { GuideScope, type GuideScopeValue } from './guide/scope';
+import type { GuideSection } from './guide/keys';
+import type { GuidePage } from './guide/pages';
+import { PageIntro, Tour, tourDue, setTourAuto } from './components/PageGuide';
 
 type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export' | 'Help' | 'Ai';
 
@@ -75,7 +79,7 @@ const Switch: React.FC<{ on: boolean; onChange: (v: boolean) => void; label: str
 );
 
 const Shell: React.FC = () => {
-    const { lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency } = usePrefs();
+    const { lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency, guide, setGuide } = usePrefs();
     const t = useT();
     const toast = useToast();
     const [active, setActive] = useState<SectionId>('A');
@@ -86,6 +90,7 @@ const Shell: React.FC = () => {
     const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [apiKey, setApiKey] = useState('');
+    const [tourPage, setTourPage] = useState<GuidePage | null>(null);
     const openInput = useRef<HTMLInputElement>(null);
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const contentRef = useRef<HTMLDivElement>(null);
@@ -191,6 +196,26 @@ const Shell: React.FC = () => {
         }
     };
 
+    // First visit to a page with beginner guidance on: run its tour once the page is on screen.
+    const guidePage: GuidePage | null = FORM_SECTIONS.some(s => s.id === active) || active === 'Export' ? active as GuidePage : null;
+    useEffect(() => {
+        setTourPage(null);
+        if (!guide || !guidePage || !tourDue(guidePage)) return;
+        const id = window.setTimeout(() => setTourPage(guidePage), 250);
+        return () => window.clearTimeout(id);
+    }, [guide, guidePage]);
+
+    const scopes = useMemo(() => Object.fromEntries(FORM_SECTIONS.map(s => [s.id, {
+        section: s.id as GuideSection, sheet: s.sheet, page: lang === 'zh' ? s.zh : s.en,
+    } satisfies GuideScopeValue])), [lang]);
+
+    const replayButton = guide && guidePage && (
+        <button type="button" onClick={() => setTourPage(guidePage)}
+            className="pressable inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-500/10">
+            <PlayCircle size={14} /> {t('重看教學', 'Replay tour')}
+        </button>
+    );
+
     const select = (id: string) => {
         setActive(id as SectionId);
         contentRef.current?.scrollTo({ top: 0 });
@@ -260,13 +285,21 @@ const Shell: React.FC = () => {
                 <div className="material-sheet absolute bottom-11 left-0 z-40 w-72 rounded-[var(--radius-card)] p-3">
                     <Switch on={showCodes} onChange={setShowCodes} label={t('顯示欄位代號', 'Show cell codes')} />
                     <Switch on={reduceTransparency} onChange={setReduceTransparency} label={t('降低透明度', 'Reduce transparency')} />
+                    <Switch on={guide} onChange={v => { setGuide(v); if (v) setTourAuto(true); }} label={t('新手引導', 'Beginner guidance')} />
+                    <p className="-mt-1 pb-1 text-[0.6875rem] leading-snug text-slate-500">
+                        {t('關閉後隱藏每一格下方的提示、頁面說明和導覽；格子旁的 ? 和問 AI 仍可使用。', 'Off hides the hints under fields, page intros and tours; the ? and Ask AI next to fields stay.')}
+                    </p>
                     {window.cbam?.ai && (
                         <div className="hairline mt-2 border-t pt-2">
                             <div className="text-sm text-slate-800">{t('自己的 Gemini 金鑰', 'Your own Gemini key')}</div>
                             <p className="mt-0.5 text-[0.6875rem] leading-snug text-slate-500">
-                                {t('留白就用本程式內建的免費額度。貼上自己的付費金鑰後，上傳的內容不會被拿去訓練。',
-                                    'Leave empty to use the built-in free tier. With your own paid key, what you upload is not used for training.')}
+                                {t('AI 功能要用你自己的 Gemini API 金鑰，可在 Google AI Studio 免費申請。免費金鑰送出的內容可能被 Google 用來改進產品；已開通付費的金鑰不會。金鑰會加密存在這台電腦。',
+                                    'The AI features need your own Gemini API key, free from Google AI Studio. With a free key Google may use what you send to improve its products; with a billing-enabled key it does not. The key is stored encrypted on this computer.')}
                             </p>
+                            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
+                                className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-medium text-indigo-600 hover:underline">
+                                {t('到 Google AI Studio 取得金鑰', 'Get a key in Google AI Studio')} <ExternalLink size={11} />
+                            </a>
                             <div className="mt-1.5 flex gap-1.5">
                                 <input
                                     type="password"
@@ -283,7 +316,7 @@ const Shell: React.FC = () => {
                                         const status = await window.cbam?.ai?.status();
                                         toast.show({
                                             message: status?.available
-                                                ? t('金鑰已套用（只存在這次執行期間）', 'Key applied for this session')
+                                                ? t('金鑰已套用，並加密存在這台電腦', 'Key applied and stored encrypted on this computer')
                                                 : t('尚未設定任何金鑰', 'No key configured'),
                                             tone: status?.available ? 'success' : 'error',
                                         });
@@ -320,7 +353,7 @@ const Shell: React.FC = () => {
                             className="pressable rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-900/5">
                             {t('開啟專案', 'Open')}
                         </button>
-                        <button type="button" onClick={handleSaveProject}
+                        <button type="button" onClick={handleSaveProject} data-tour="save-project"
                             className="pressable rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-900/5">
                             {t('儲存專案', 'Save')}
                         </button>
@@ -337,10 +370,14 @@ const Shell: React.FC = () => {
                     <main className="mx-auto max-w-5xl px-6 pb-24 pt-6">
                         {current && (
                             <div className="mb-6">
-                                <h2 className="text-[1.75rem] font-bold text-slate-900">{pageTitle}</h2>
+                                <div className="flex items-center justify-between gap-3">
+                                    <h2 className="text-[1.75rem] font-bold text-slate-900">{pageTitle}</h2>
+                                    {replayButton}
+                                </div>
                                 <p className="mt-1 text-sm text-slate-500">
                                     {t(`對應官方範本工作表 ${current.sheet}`, `Official template sheet ${current.sheet}`)}
                                 </p>
+                                {guide && <PageIntro key={current.id} page={current.id as GuidePage} />}
                                 {UPLOAD_HINTS[current.id] && (
                                     <div className="mt-4 flex flex-wrap items-center gap-2 rounded-[var(--radius-card)] bg-indigo-500/[0.07] px-4 py-3">
                                         <Sparkles size={15} className="shrink-0 text-indigo-500" />
@@ -354,13 +391,13 @@ const Shell: React.FC = () => {
                         )}
 
                         {/* Every form section stays mounted so the sidebar rings can measure it. */}
-                        <div hidden={active !== 'A'} ref={el => { sectionRefs.current.A = el; }}><A_InstDataSection data={formData.a_instData} setData={updateA} /></div>
-                        <div hidden={active !== 'B'} ref={el => { sectionRefs.current.B = el; }}><B_EmInstSection data={formData.b_emInst} setData={updateB} /></div>
-                        <div hidden={active !== 'C'} ref={el => { sectionRefs.current.C = el; }}><C_EmissionsEnergySection data={formData.c_emissionsEnergy} setData={updateC} /></div>
-                        <div hidden={active !== 'D'} ref={el => { sectionRefs.current.D = el; }}><D_ProcessesSection data={formData.d_processes} setData={updateD} e83Rows={formData.a_instData.e83} e62Rows={formData.a_instData.e62} /></div>
-                        <div hidden={active !== 'E'} ref={el => { sectionRefs.current.E = el; }}><E_PurchPrecSection data={formData.e_purchPrec} setData={updateE} e83Rows={formData.a_instData.e83} e102Rows={formData.a_instData.e102} /></div>
-                        <div hidden={active !== 'SumProc'} ref={el => { sectionRefs.current.SumProc = el; }}><Summary_ProcessSection data={formData.summary_process} setData={updateSumProc} /></div>
-                        <div hidden={active !== 'SumProd'} ref={el => { sectionRefs.current.SumProd = el; }}><Summary_ProductsSection data={formData.summary_products} setData={updateSumProd} e83Rows={formData.a_instData.e83} /></div>
+                        <div hidden={active !== 'A'} ref={el => { sectionRefs.current.A = el; }}><GuideScope.Provider value={scopes.A}><A_InstDataSection data={formData.a_instData} setData={updateA} /></GuideScope.Provider></div>
+                        <div hidden={active !== 'B'} ref={el => { sectionRefs.current.B = el; }}><GuideScope.Provider value={scopes.B}><B_EmInstSection data={formData.b_emInst} setData={updateB} /></GuideScope.Provider></div>
+                        <div hidden={active !== 'C'} ref={el => { sectionRefs.current.C = el; }}><GuideScope.Provider value={scopes.C}><C_EmissionsEnergySection data={formData.c_emissionsEnergy} setData={updateC} /></GuideScope.Provider></div>
+                        <div hidden={active !== 'D'} ref={el => { sectionRefs.current.D = el; }}><GuideScope.Provider value={scopes.D}><D_ProcessesSection data={formData.d_processes} setData={updateD} e83Rows={formData.a_instData.e83} e62Rows={formData.a_instData.e62} /></GuideScope.Provider></div>
+                        <div hidden={active !== 'E'} ref={el => { sectionRefs.current.E = el; }}><GuideScope.Provider value={scopes.E}><E_PurchPrecSection data={formData.e_purchPrec} setData={updateE} e83Rows={formData.a_instData.e83} e102Rows={formData.a_instData.e102} /></GuideScope.Provider></div>
+                        <div hidden={active !== 'SumProc'} ref={el => { sectionRefs.current.SumProc = el; }}><GuideScope.Provider value={scopes.SumProc}><Summary_ProcessSection data={formData.summary_process} setData={updateSumProc} /></GuideScope.Provider></div>
+                        <div hidden={active !== 'SumProd'} ref={el => { sectionRefs.current.SumProd = el; }}><GuideScope.Provider value={scopes.SumProd}><Summary_ProductsSection data={formData.summary_products} setData={updateSumProd} e83Rows={formData.a_instData.e83} /></GuideScope.Provider></div>
 
                         {active === 'Decarbon' && <DecarbonizationEngine />}
                         {active === 'Scenario' && <CarbonEmissionTool e62Rows={formData.a_instData.e62} />}
@@ -370,10 +407,14 @@ const Shell: React.FC = () => {
                         {active === 'Export' && (
                             <div className="space-y-6">
                                 <div>
-                                    <h2 className="text-[1.75rem] font-bold text-slate-900">{t('匯出申報表', 'Export')}</h2>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <h2 className="text-[1.75rem] font-bold text-slate-900">{t('匯出申報表', 'Export')}</h2>
+                                        {replayButton}
+                                    </div>
                                     <p className="mt-1 text-sm text-slate-500">
                                         {t('把填好的資料寫進歐盟官方範本，交給你的歐盟進口商。', 'Write your data into the official EU template for your EU importer.')}
                                     </p>
+                                    {guide && <PageIntro page="Export" />}
                                 </div>
                                 <div className="card flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center">
                                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
@@ -383,7 +424,7 @@ const Shell: React.FC = () => {
                                         <div className="font-semibold text-slate-900">{t('CBAM 排放資料通報範本', 'CBAM communication template')}</div>
                                         <div className="text-sm text-slate-500">{t(`官方範本 ${TEMPLATE_VERSION}。只寫入你填的欄位，範本其餘部分完全不動。`, `Official template ${TEMPLATE_VERSION}. Only the fields you filled are written; the rest of the file is untouched.`)}</div>
                                     </div>
-                                    <button type="button" onClick={handleDownload} disabled={isSaving}
+                                    <button type="button" onClick={handleDownload} disabled={isSaving} data-tour="export-download"
                                         className="pressable inline-flex items-center gap-2 rounded-full bg-indigo-500 px-5 py-2.5 font-semibold text-white hover:bg-indigo-600 disabled:opacity-50">
                                         <Download size={18} />
                                         {isSaving ? t('產生中…', 'Creating…') : t('下載申報表', 'Download')}
@@ -393,14 +434,14 @@ const Shell: React.FC = () => {
                                     const gaps = FORM_SECTIONS.filter(s => (missing[s.id] ?? 0) > 0);
                                     if (!gaps.length) {
                                         return (
-                                            <div className="flex items-center gap-3 rounded-[var(--radius-card)] bg-emerald-500/10 p-4 text-sm text-slate-700">
+                                            <div data-tour="export-gaps" className="flex items-center gap-3 rounded-[var(--radius-card)] bg-emerald-500/10 p-4 text-sm text-slate-700">
                                                 <ShieldCheck size={18} className="shrink-0 text-emerald-600" />
                                                 {t('必填欄位都填好了。', 'Every required field is filled.')}
                                             </div>
                                         );
                                     }
                                     return (
-                                        <div className="rounded-[var(--radius-card)] bg-amber-500/10 p-4">
+                                        <div data-tour="export-gaps" className="rounded-[var(--radius-card)] bg-amber-500/10 p-4">
                                             <p className="text-sm font-medium text-slate-800">
                                                 {t('還有必填欄位沒填。你仍然可以匯出，進口商可能會退回要求補齊。', 'Some required fields are empty. You can still export; your importer may send it back.')}
                                             </p>
@@ -435,6 +476,7 @@ const Shell: React.FC = () => {
                             </div>
                         )}
                     </main>
+                    {tourPage && <Tour key={tourPage} page={tourPage} onClose={() => setTourPage(null)} />}
                 </div>
             </div>
           </AiDropZone>

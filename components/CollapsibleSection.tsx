@@ -8,10 +8,12 @@ interface CollapsibleSectionProps {
     startOpen?: boolean;
     isSubSection?: boolean;
     noCollapse?: boolean;
+    /** Marks the section for a page tour step (data-tour). */
+    tour?: string;
 }
 
 /** The one card used by every form section. Sub-sections are lighter, inset groups. */
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, startOpen = false, isSubSection = false, noCollapse = false }) => {
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children, startOpen = false, isSubSection = false, noCollapse = false, tour }) => {
     const [isOpen, setIsOpen] = useState(startOpen || noCollapse);
     const label = useLabel();
     const open = isOpen || noCollapse;
@@ -24,7 +26,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
     );
 
     return (
-        <section className={isSubSection ? 'mt-6' : 'card overflow-hidden'}>
+        <section className={isSubSection ? 'mt-6' : 'card overflow-hidden'} data-tour={tour}>
             {noCollapse ? (
                 <div className={`flex items-center justify-between ${isSubSection ? 'mb-3' : 'px-6 pb-2 pt-6'}`}>{header}</div>
             ) : (

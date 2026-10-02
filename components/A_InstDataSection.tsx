@@ -5,7 +5,8 @@ import { E62_OPTIONS, E83_BASE_OPTIONS, COUNTRY_NAMES, COUNTRY_CODES, ROUTE_MAP,
 import { TextInput, SelectInput, SearchableSelect } from './FormControls';
 import { Heading, Group } from './Layout';
 import { SwipeRow, AddRowButton, CAPS } from '../ui/rows';
-import { useT, useLabel } from '../ui/prefs';
+import { useT, useLabel, usePrefs } from '../ui/prefs';
+import { periodWarning, latitudeWarning, longitudeWarning } from '../guide/warnings';
 import { useUndo } from '../ui/undo';
 
 interface Props {
@@ -70,6 +71,8 @@ const DynamicSelectGroup = ({
 const A_InstDataSection: React.FC<Props> = ({ data, setData }) => {
     const t = useT();
     const label = useLabel();
+    const { lang } = usePrefs();
+    const say = (m: { zh: string; en: string } | null) => (m ? m[lang] : null);
     const captureUndo = useUndo();
 
     const handleStaticChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -109,7 +112,8 @@ const A_InstDataSection: React.FC<Props> = ({ data, setData }) => {
                 <Heading label="1. Reporting period and installation (報告期間與設施)" />
                 <div className="grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
                     <TextInput label="Reporting Start Date (報告開始日期)" id="I9" type="date" required onChange={handleStaticChange} value={data.static.I9 as string || ''} />
-                    <TextInput label="Reporting End Date (報告結束日期)" id="L9" type="date" required onChange={handleStaticChange} value={data.static.L9 as string || ''} />
+                    <TextInput label="Reporting End Date (報告結束日期)" id="L9" type="date" required onChange={handleStaticChange} value={data.static.L9 as string || ''}
+                        warning={say(periodWarning(data.static.I9, data.static.L9))} />
                     <div className="hairline my-1 border-t md:col-span-2 lg:col-span-3" />
                     <TextInput label="Name of the installation (English name) (設施名稱（英文）)" id="I20" type="text" required onChange={handleStaticChange} value={data.static.I20 as string || ''} />
                     <TextInput label="Street, Number (街道、門牌)" id="I21" type="text" required onChange={handleStaticChange} value={data.static.I21 as string || ''} />
@@ -135,8 +139,10 @@ const A_InstDataSection: React.FC<Props> = ({ data, setData }) => {
                             {t('查詢台灣的 UN/LOCODE', 'Look up Taiwan UN/LOCODEs')} <ExternalLink size={12} />
                         </a>
                     </div>
-                    <TextInput label="Coordinates of the main emission source (latitude) (主要排放源緯度)" id="I28" type="text" required onChange={handleStaticChange} value={data.static.I28 as string || ''} />
-                    <TextInput label="Coordinates of the main emission source (longitude) (主要排放源經度)" id="I29" type="text" required onChange={handleStaticChange} value={data.static.I29 as string || ''} />
+                    <TextInput label="Coordinates of the main emission source (latitude) (主要排放源緯度)" id="I28" type="text" required onChange={handleStaticChange} value={data.static.I28 as string || ''}
+                        warning={say(latitudeWarning(data.static.I28))} />
+                    <TextInput label="Coordinates of the main emission source (longitude) (主要排放源經度)" id="I29" type="text" required onChange={handleStaticChange} value={data.static.I29 as string || ''}
+                        warning={say(longitudeWarning(data.static.I29))} />
                     <div className="hairline my-1 border-t md:col-span-2 lg:col-span-3" />
                     <TextInput label="Name of the installation (local language) (設施名稱（在地語言，選填）)" id="I19" type="text" onChange={handleStaticChange} value={data.static.I19 as string || ''} />
                     <TextInput label="Economic activity (經濟活動)" id="I22" type="text" onChange={handleStaticChange} value={data.static.I22 as string || ''} />

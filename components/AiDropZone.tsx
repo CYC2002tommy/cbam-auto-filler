@@ -163,10 +163,10 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
 
             <Sheet open={consentOpen} onClose={() => setConsentOpen(false)} title={t('關於 AI 讀取文件', 'About AI document reading')}>
                 <div className="space-y-3 text-sm leading-relaxed text-slate-700">
-                    <p>{t('你上傳的影像會送到 Google 的 Gemini 服務辨識，用的是本計畫的免費金鑰。', 'The images you upload are sent to Google’s Gemini service, using this project’s free-tier key.')}</p>
+                    <p>{t('你上傳的影像會用你在「設定」貼上的 Gemini API 金鑰，送到 Google 的 Gemini 服務辨識。', 'The images you upload are sent to Google’s Gemini service with the Gemini API key you entered in Settings.')}</p>
                     <p className="rounded-xl bg-amber-500/10 p-3">
-                        {t('免費方案的條款允許 Google 使用送出的內容改進其產品，也可能由人工審閱。請不要上傳含個人身分證號或無關機密的文件。',
-                            'Google’s free-tier terms allow it to use submitted content to improve its products, and humans may review it. Do not upload documents with personal ID numbers or unrelated confidential material.')}
+                        {t('如果是免費方案的金鑰，Google 的條款允許它使用送出的內容改進產品，也可能由人工審閱。請不要上傳含個人身分證號或無關機密的文件。',
+                            'With a free-tier key, Google’s terms allow it to use submitted content to improve its products, and humans may review it. Do not upload documents with personal ID numbers or unrelated confidential material.')}
                     </p>
                     <p>{t('只有影像會送出，你的申報資料不會離開這台電腦。AI 讀到的內容要你逐項確認才會填進表單。',
                         'Only the image is sent; your declaration data never leaves this computer. Nothing is written into the form until you tick it.')}</p>

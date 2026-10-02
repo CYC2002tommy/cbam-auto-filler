@@ -9,14 +9,17 @@ interface Prefs {
     setShowCodes: (v: boolean) => void;
     reduceTransparency: boolean;
     setReduceTransparency: (v: boolean) => void;
+    /** Beginner guidance: one-line field hints, page intros and first-visit tours. */
+    guide: boolean;
+    setGuide: (v: boolean) => void;
 }
 
 const PrefsContext = createContext<Prefs | null>(null);
 
-const read = (key: string, fallback: string) => {
+export const read = (key: string, fallback: string) => {
     try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
 };
-const write = (key: string, value: string) => {
+export const write = (key: string, value: string) => {
     try { localStorage.setItem(key, value); } catch { /* private mode: keep in memory only */ }
 };
 
@@ -24,10 +27,12 @@ export const PrefsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [lang, setLangState] = useState<Lang>(() => (read('cbam.lang', 'zh') === 'en' ? 'en' : 'zh'));
     const [showCodes, setShowCodesState] = useState(() => read('cbam.showCodes', '0') === '1');
     const [reduceTransparency, setRT] = useState(() => read('cbam.reduceTransparency', '0') === '1');
+    const [guide, setGuideState] = useState(() => read('cbam.guide', '1') === '1');
 
     const setLang = useCallback((l: Lang) => { setLangState(l); write('cbam.lang', l); }, []);
     const setShowCodes = useCallback((v: boolean) => { setShowCodesState(v); write('cbam.showCodes', v ? '1' : '0'); }, []);
     const setReduceTransparency = useCallback((v: boolean) => { setRT(v); write('cbam.reduceTransparency', v ? '1' : '0'); }, []);
+    const setGuide = useCallback((v: boolean) => { setGuideState(v); write('cbam.guide', v ? '1' : '0'); }, []);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -36,8 +41,8 @@ export const PrefsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         root.classList.toggle('reduce-transparency', reduceTransparency);
     }, [lang, showCodes, reduceTransparency]);
 
-    const value = useMemo(() => ({ lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency }),
-        [lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency]);
+    const value = useMemo(() => ({ lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency, guide, setGuide }),
+        [lang, setLang, showCodes, setShowCodes, reduceTransparency, setReduceTransparency, guide, setGuide]);
     return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>;
 };
 

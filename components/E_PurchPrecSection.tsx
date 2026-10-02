@@ -119,7 +119,7 @@ const E_PurchPrecSection: React.FC<Props> = ({ data, setData, e83Rows, e102Rows 
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('前驅物', 'Precursors')}>
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('前驅物', 'Precursors')} data-tour="precursor-tabs">
                 {blocks.map(b => (
                     <button key={b.idx} type="button" role="tab" aria-selected={b.idx === selected} onClick={() => setSelected(b.idx)}
                         className={`pressable rounded-full px-4 py-1.5 text-sm font-medium ${b.idx === selected ? 'bg-slate-900 text-white' : 'bg-slate-900/5 text-slate-700 hover:bg-slate-900/10'}`}>
