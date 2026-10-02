@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Upload, MessageSquare, Send, Sparkles, Info } from 'lucide-react';
 import { Group, Heading } from './Layout';
 import { useT } from '../ui/prefs';
 import { useAi } from '../ai/context';
 import { Rich } from '../ui/Rich';
+import ApiKeyGuide from './ApiKeyGuide';
 
 const SUGGESTIONS = [
     { zh: '我做螺絲，出口到歐盟要準備哪些資料？', en: 'I make screws for the EU. What data do I need?' },
@@ -22,6 +23,15 @@ const AiPage: React.FC<{ currentPage: string }> = ({ currentPage }) => {
     const [draft, setDraft] = useState('');
     const [busy, setBusy] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
+    const [hasKey, setHasKey] = useState<boolean | null>(null);
+    const [guideOpen, setGuideOpen] = useState(false);
+
+    // The desktop app can run without a key; say so here instead of failing on the first question.
+    useEffect(() => {
+        let alive = true;
+        window.cbam?.ai?.status().then(s => { if (alive) setHasKey(Boolean(s?.available)); }).catch(() => alive && setHasKey(false));
+        return () => { alive = false; };
+    }, [guideOpen]);
 
     const send = async (text: string) => {
         const question = text.trim();
@@ -56,6 +66,18 @@ const AiPage: React.FC<{ currentPage: string }> = ({ currentPage }) => {
                     {t('AI 功能只在桌面版可用（瀏覽器版沒有存放金鑰的地方）。', 'The AI features need the desktop app; the browser build has nowhere safe to keep the key.')}
                 </div>
             )}
+
+            {ai.available && hasKey === false && (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[var(--radius-card)] bg-amber-500/10 p-4 text-sm text-slate-700">
+                    <Info size={16} className="shrink-0 text-amber-600" />
+                    <span className="flex-1">{t('還沒有設定 Gemini 金鑰。金鑰免費申請，貼到左下角「設定」就能用 AI。', 'No Gemini key yet. Keys are free; paste one under Settings (bottom left) to use the AI.')}</span>
+                    <button type="button" onClick={() => setGuideOpen(true)}
+                        className="pressable rounded-full bg-indigo-500 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-600">
+                        {t('怎麼取得金鑰？', 'How do I get a key?')}
+                    </button>
+                </div>
+            )}
+            <ApiKeyGuide open={guideOpen} onClose={() => setGuideOpen(false)} />
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <button type="button" onClick={ai.pick} disabled={!ai.available}

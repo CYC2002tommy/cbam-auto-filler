@@ -5,6 +5,7 @@ import { useGuideScope } from '../guide/scope';
 import { usePrefs, useT } from '../ui/prefs';
 import { useAi } from '../ai/context';
 import { Rich } from '../ui/Rich';
+import ApiKeyGuide from './ApiKeyGuide';
 
 /** A non-blocking hint under a field: it never stops the user from typing or exporting. */
 export const FieldWarning: React.FC<{ text: string }> = ({ text }) => (
@@ -28,6 +29,7 @@ const AskAi: React.FC<{ label: string; code?: string; entry: GuideEntry }> = ({ 
     const [answer, setAnswer] = useState('');
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const [guideOpen, setGuideOpen] = useState(false);
 
     useEffect(() => {
         let alive = true;
@@ -39,9 +41,15 @@ const AskAi: React.FC<{ label: string; code?: string; entry: GuideEntry }> = ({ 
     if (ready === false) {
         return (
             <p className="mt-3 text-xs text-slate-500">
-                {window.cbam?.ai
-                    ? t('想問 AI：先到左下角「設定」貼上自己的 Gemini 金鑰。', 'To ask the AI, paste your own Gemini key under Settings (bottom left) first.')
-                    : t('問 AI 只在桌面版可用。', 'Asking the AI is only available in the desktop app.')}
+                {window.cbam?.ai ? (
+                    <>
+                        {t('想問 AI：先到左下角「設定」貼上自己的 Gemini 金鑰。', 'To ask the AI, paste your own Gemini key under Settings (bottom left) first.')}{' '}
+                        <button type="button" onClick={() => setGuideOpen(true)} className="pressable font-medium text-indigo-600 hover:underline">
+                            {t('怎麼取得金鑰？', 'How do I get one?')}
+                        </button>
+                        <ApiKeyGuide open={guideOpen} onClose={() => setGuideOpen(false)} />
+                    </>
+                ) : t('問 AI 只在桌面版可用。', 'Asking the AI is only available in the desktop app.')}
             </p>
         );
     }

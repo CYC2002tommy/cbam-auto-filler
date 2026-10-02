@@ -41,6 +41,10 @@ xattr -cr "/Applications/CBAM Auto-Filler.app"
 codesign --force --deep --sign - "/Applications/CBAM Auto-Filler.app"
 ```
 
+## AI（選用）
+
+AI 讀單據和問 AI 需要你自己的 Gemini API 金鑰，免費申請，步驟見 [AI_KEY.md](AI_KEY.md)。沒有金鑰也能用其他所有功能。
+
 ## 資料存在哪裡
 
 - 你填的資料**只存在自己的電腦**，不會上傳。

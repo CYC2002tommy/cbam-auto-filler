@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useLayoutEffect, useEffect, useMe
 import { MotionConfig } from 'motion/react';
 import {
     Building2, Flame, Zap, Factory, Package, ClipboardList, Boxes, Leaf, Calculator, Download,
-    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles, Bot, PlayCircle, ExternalLink,
+    Settings2, FileSpreadsheet, ShieldCheck, LifeBuoy, Sparkles, Bot, PlayCircle,
 } from 'lucide-react';
 import HelpPage from './components/HelpPage';
 import AiDropZone from './components/AiDropZone';
@@ -29,6 +29,7 @@ import { GuideScope, type GuideScopeValue } from './guide/scope';
 import type { GuideSection } from './guide/keys';
 import type { GuidePage } from './guide/pages';
 import { PageIntro, Tour, tourDue, setTourAuto } from './components/PageGuide';
+import ApiKeyGuide from './components/ApiKeyGuide';
 
 type SectionId = 'A' | 'B' | 'C' | 'D' | 'E' | 'SumProc' | 'SumProd' | 'Decarbon' | 'Scenario' | 'Export' | 'Help' | 'Ai';
 
@@ -91,6 +92,7 @@ const Shell: React.FC = () => {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [apiKey, setApiKey] = useState('');
     const [tourPage, setTourPage] = useState<GuidePage | null>(null);
+    const [keyGuideOpen, setKeyGuideOpen] = useState(false);
     const openInput = useRef<HTMLInputElement>(null);
     const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const contentRef = useRef<HTMLDivElement>(null);
@@ -296,15 +298,15 @@ const Shell: React.FC = () => {
                                 {t('AI 功能要用你自己的 Gemini API 金鑰，可在 Google AI Studio 免費申請。免費金鑰送出的內容可能被 Google 用來改進產品；已開通付費的金鑰不會。金鑰會加密存在這台電腦。',
                                     'The AI features need your own Gemini API key, free from Google AI Studio. With a free key Google may use what you send to improve its products; with a billing-enabled key it does not. The key is stored encrypted on this computer.')}
                             </p>
-                            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
-                                className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-medium text-indigo-600 hover:underline">
-                                {t('到 Google AI Studio 取得金鑰', 'Get a key in Google AI Studio')} <ExternalLink size={11} />
-                            </a>
+                            <button type="button" onClick={() => { setSettingsOpen(false); setKeyGuideOpen(true); }}
+                                className="pressable mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-medium text-indigo-600 hover:underline">
+                                {t('怎麼取得金鑰？（3 分鐘教學）', 'How do I get a key? (3-minute guide)')}
+                            </button>
                             <div className="mt-1.5 flex gap-1.5">
                                 <input
                                     type="password"
                                     className="field min-w-0 flex-1 px-2.5 py-1.5 text-xs"
-                                    placeholder="AIza…"
+                                    placeholder={t('貼上金鑰', 'Paste your key')}
                                     value={apiKey}
                                     onChange={e => setApiKey(e.target.value)}
                                 />
@@ -477,6 +479,7 @@ const Shell: React.FC = () => {
                         )}
                     </main>
                     {tourPage && <Tour key={tourPage} page={tourPage} onClose={() => setTourPage(null)} />}
+                    <ApiKeyGuide open={keyGuideOpen} onClose={() => setKeyGuideOpen(false)} />
                 </div>
             </div>
           </AiDropZone>
