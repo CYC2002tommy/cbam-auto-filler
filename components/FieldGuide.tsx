@@ -71,7 +71,7 @@ const AskAi: React.FC<{ label: string; code?: string; entry: GuideEntry }> = ({ 
                 <input
                     type="search"
                     className="field min-w-0 flex-1 px-2.5 py-1.5 text-xs"
-                    placeholder={t('問 AI 這一格的問題（留白直接送出＝請 AI 解釋）', 'Ask the AI about this field (send empty to get an explanation)')}
+                    placeholder={t('想問什麼？（可留白）', 'Your question (optional)')}
                     value={question}
                     onChange={e => setQuestion(e.target.value)}
                     disabled={ready === null}
@@ -84,7 +84,7 @@ const AskAi: React.FC<{ label: string; code?: string; entry: GuideEntry }> = ({ 
                 </button>
             </form>
             <p className="mt-1 text-[0.6875rem] text-slate-500">
-                {t('只會送出這一格的名稱、說明和你的問題，不會送出你填的數字。', 'Only this field’s name, its guidance and your question are sent, never the values you entered.')}
+                {t('留白直接按「問 AI」會請 AI 解釋這一格。只會送出這一格的名稱、說明和你的問題，不會送出你填的數字。', 'Send it empty and the AI explains this field. Only the field’s name, its guidance and your question are sent, never the values you entered.')}
             </p>
             {busy && <p className="mt-2 text-xs text-slate-500">{t('AI 思考中…（Gemini 忙的時候可能要等一分鐘）', 'Thinking… (this can take a minute when Gemini is busy)')}</p>}
             {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
