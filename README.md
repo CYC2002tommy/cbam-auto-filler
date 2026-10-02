@@ -47,5 +47,5 @@ python tools/verify_export.py <匯出的檔案.xlsx>   # 比對匯出檔與官�
 
 ## 授權
 
-尚未決定。開源前需確認國科會計畫成果的智慧財產歸屬。
-License not yet chosen; the IP terms of the NSTC project need to be confirmed before publishing.
+程式碼以 MIT 授權釋出（見 [LICENSE](LICENSE)），著作權人為中興大學 CBAM 計畫團隊。官方範本、歐盟預設值、IPCC 係數與字型不屬於本專案，各依原權利人條款，見 [NOTICE.md](NOTICE.md)。
+The code is MIT-licensed ([LICENSE](LICENSE)). The official template, EU default values, IPCC factors and fonts are third-party material under their own terms; see [NOTICE.md](NOTICE.md).

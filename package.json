@@ -5,6 +5,7 @@
   "version": "0.1.7",
   "description": "Desktop tool for Taiwanese SMEs filling the EU CBAM communication template",
   "author": "NCHU CBAM project",
+  "license": "MIT",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
