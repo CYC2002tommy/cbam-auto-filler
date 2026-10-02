@@ -182,6 +182,10 @@ def main():
                     v = validations.get((cell.column, cell.row))
                     t = cell_type(cell, v)
                     rec = {"t": t}
+                    # Percent-formatted cells store a fraction (0.18 shows as 18%); the app takes
+                    # the percentage the user typed and divides by 100 when writing.
+                    if t in ("number", "general") and "%" in (cell.number_format or ""):
+                        rec["pct"] = True
                     if v is not None and "list" in v:
                         rec["l"] = v["list"]
                         if v.get("soft"):

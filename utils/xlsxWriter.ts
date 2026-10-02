@@ -16,8 +16,11 @@ import map from '../template/templateMap.json';
 
 export type CellType = 'number' | 'text' | 'date' | 'bool' | 'list' | 'general';
 
-/** `soft` marks a list the template builds with formulas from the user's own entries, so its cached values cannot validate anything. */
-interface CellSpec { t: CellType; l?: string; soft?: boolean }
+/**
+ * `soft` marks a list the template builds with formulas from the user's own entries, so its cached values cannot validate anything.
+ * `pct` marks a percent-formatted cell: it stores a fraction, while the user types a percentage.
+ */
+interface CellSpec { t: CellType; l?: string; soft?: boolean; pct?: boolean }
 
 const CELLS = map.cells as Record<string, Record<string, CellSpec>>;
 const LISTS = map.lists as Record<string, (string | number | boolean)[]>;
@@ -26,6 +29,12 @@ export const TEMPLATE_VERSION = map.template.version;
 export const TEMPLATE_FILE = map.template.file;
 export const CAPS = map.caps as Record<string, number>;
 export const PROCESS_STRIDE = map.processStride;
+
+/** True when the template formats this cell as a percentage, so the form shows "%" and export divides by 100. */
+export const isPercentCell = (sheet: string, cell: string) => Boolean(CELLS[sheet]?.[cell]?.pct);
+
+/** 18 → 0.18 without binary noise (1.1 / 100 would otherwise be 0.011000000000000001). */
+const fromPercent = (n: number) => Number((n / 100).toPrecision(15));
 
 export interface Write { sheet: string; cell: string; value: string | number | boolean }
 
@@ -108,7 +117,7 @@ const setCell = (doc: XMLDocument, sheetData: Element, addr: string, spec: CellS
         case 'number': {
             const n = typeof value === 'number' ? value : Number(value);
             if (!Number.isFinite(n)) throw new ExportError(`「${addr}」需要數字，收到「${value}」`, addr);
-            writeNumber(n);
+            writeNumber(spec.pct ? fromPercent(n) : n);
             break;
         }
         case 'date': {
@@ -143,8 +152,8 @@ const setCell = (doc: XMLDocument, sheetData: Element, addr: string, spec: CellS
             writeText(String(value));
             break;
         default:
-            if (typeof value === 'number') writeNumber(value);
-            else if (NUMERIC.test(String(value))) writeNumber(Number(value));
+            if (typeof value === 'number') writeNumber(spec.pct ? fromPercent(value) : value);
+            else if (NUMERIC.test(String(value))) writeNumber(spec.pct ? fromPercent(Number(value)) : Number(value));
             else writeText(String(value));
     }
 };
