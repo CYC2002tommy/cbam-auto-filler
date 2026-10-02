@@ -119,8 +119,21 @@ export const Tour: React.FC<{ page: GuidePage; onClose: () => void }> = ({ page,
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') finish();
-            else if (e.key === 'ArrowRight') setIndex(i => Math.min(i + 1, (steps?.length ?? 1) - 1));
+            const card = popover.current;
+            if (e.key === 'Escape') { finish(); return; }
+            // Keep keyboard focus inside the card: the page behind it cannot be used during a tour.
+            if (e.key === 'Tab' && card) {
+                const items: HTMLElement[] = Array.from(card.querySelectorAll('button'));
+                if (!items.length) return;
+                e.preventDefault();
+                const i = items.indexOf(document.activeElement as HTMLElement);
+                const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i < 0 || i === items.length - 1 ? 0 : i + 1);
+                items[next].focus();
+                return;
+            }
+            // Arrow keys move the tour only from inside the card, never from a text field.
+            if (!card?.contains(document.activeElement)) return;
+            if (e.key === 'ArrowRight') setIndex(i => Math.min(i + 1, (steps?.length ?? 1) - 1));
             else if (e.key === 'ArrowLeft') setIndex(i => Math.max(i - 1, 0));
         };
         window.addEventListener('keydown', onKey);

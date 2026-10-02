@@ -21,9 +21,10 @@ const MODEL = 'gemini-flash-latest';
  */
 const MESSAGES = {
     zh: {
-        noKey: '尚未設定 Gemini API 金鑰。請在設定中貼上自己的金鑰，或在 .env.local 設定 GEMINI_API_KEY。',
+        noKey: '尚未設定 Gemini API 金鑰。請到左下角「設定」貼上自己的金鑰。',
         noKeyShort: '尚未設定 Gemini API 金鑰。',
-        rateLimit: 'Gemini 免費額度已用完，請稍後再試，或在設定中改用自己的 API 金鑰。',
+        rateLimit: '這把金鑰的 Gemini 額度暫時用完了。免費金鑰每分鐘、每天都有次數上限，請過幾分鐘再試。',
+        busy: 'Gemini 目前太忙，請過一分鐘再試。',
         emptyExtract: 'Gemini 沒有回傳可用的內容。',
         empty: 'Gemini 沒有回傳內容。',
         truncated: '（回答太長被截斷了。請它「接著說」，或把問題問得更具體一點。）',
@@ -31,9 +32,10 @@ const MESSAGES = {
         statusDetail: (code, detail) => `Gemini 回應 ${code}：${detail}`,
     },
     en: {
-        noKey: 'No Gemini API key set. Paste your own key in Settings, or set GEMINI_API_KEY in .env.local.',
+        noKey: 'No Gemini API key set. Paste your own key under Settings (bottom left).',
         noKeyShort: 'No Gemini API key set.',
-        rateLimit: 'The free Gemini quota is used up. Try again later, or switch to your own API key in Settings.',
+        rateLimit: 'This key has used up its Gemini quota for now. Free keys have per-minute and per-day limits; try again in a few minutes.',
+        busy: 'Gemini is busy right now. Try again in a minute.',
         emptyExtract: 'Gemini returned nothing usable.',
         empty: 'Gemini returned no text.',
         truncated: '(The answer was cut off because it ran long. Ask it to continue, or narrow the question.)',
@@ -136,6 +138,7 @@ const extract = async ({ dataBase64, mimeType, fields, lang = 'zh', key: overrid
         error.code = 'RATE_LIMIT';
         throw error;
     }
+    if (response.status === 503) throw new Error(m.busy);
     if (!response.ok) {
         const detail = await response.text();
         throw new Error(m.statusDetail(response.status, detail.slice(0, 200)));
@@ -214,6 +217,7 @@ const ask = async ({ question, history = [], context = '', lang = 'zh', key: ove
         error.code = 'RATE_LIMIT';
         throw error;
     }
+    if (response.status === 503) throw new Error(m.busy);
     if (!response.ok) throw new Error(m.status(response.status));
     const payload = await response.json();
     const candidate = payload.candidates?.[0];

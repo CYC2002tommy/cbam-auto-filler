@@ -12,6 +12,9 @@ import { AiContext } from '../ai/context';
 const CONSENT_KEY = 'cbam.aiConsent';
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'application/pdf'];
 
+/** Electron wraps errors from the main process as "Error invoking remote method 'ai:ask': Error: …"; users only need the last part. */
+const cleanError = (error: any) => String(error?.message ?? error).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '');
+
 const readConsent = () => { try { return localStorage.getItem(CONSENT_KEY) === '1'; } catch { return false; } };
 const writeConsent = () => { try { localStorage.setItem(CONSENT_KEY, '1'); } catch { /* ignore */ } };
 
@@ -91,7 +94,7 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
             setProposals(toProposals(collected));
         } catch (error: any) {
             setReviewOpen(false);
-            toast.show({ message: error?.message ?? String(error), tone: 'error', duration: 9000 });
+            toast.show({ message: cleanError(error), tone: 'error', duration: 9000 });
         } finally {
             setBusy(false);
         }
@@ -140,8 +143,12 @@ const AiDropZone: React.FC<Props> = ({ form, setForm, e83Rows, children }) => {
 
     const ask = useCallback(async (question: string, history: { role: 'user' | 'ai'; text: string }[], context: string) => {
         if (!window.cbam?.ai?.ask) throw new Error(t('文字對話只在桌面版可用。', 'The assistant is only available in the desktop app.'));
-        const result = await window.cbam.ai.ask({ question, history: history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.text })), context, lang });
-        return result.text;
+        try {
+            const result = await window.cbam.ai.ask({ question, history: history.map(h => ({ role: h.role === 'user' ? 'user' : 'model', text: h.text })), context, lang });
+            return result.text;
+        } catch (error) {
+            throw new Error(cleanError(error));
+        }
     }, [t, lang]);
 
     const apply = () => {

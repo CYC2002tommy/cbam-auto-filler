@@ -46,21 +46,18 @@ const AskAi: React.FC<{ label: string; code?: string; entry: GuideEntry }> = ({ 
         );
     }
 
-    const g = entry.en;
-    const context = [
-        `The user is a beginner at a Taiwanese fastener SME filling the EU CBAM communication template V2.1.1.`,
-        `They are asking about one field: "${label}"${code ? `, cell ${code}` : ''}${scope.sheet ? ` on sheet ${scope.sheet}` : ''}${scope.page ? ` (app page "${scope.page}")` : ''}.`,
-        `Guidance already shown to them: ${[g.short, g.what, g.where, g.unit, g.example, g.mistakes].filter(Boolean).join(' ')}`,
-        `Source of that guidance: ${entry.source}.`,
-        `Keep the answer short and practical; say where to find the number. Do not invent figures.`,
-    ].join('\n');
+    const g = entry[lang];
+    const where = `${scope.sheet ? `${scope.sheet} ` : ''}${code ?? ''}`.trim();
+    const about = lang === 'zh'
+        ? `我在問「${label}」這一格${where ? `（官方範本 ${where}）` : ''}。App 已經給我的說明：${[g.short, g.what, g.where, g.unit, g.example, g.mistakes].filter(Boolean).join(' ')}（依據：${entry.source}）`
+        : `I am asking about the field "${label}"${where ? ` (official template ${where})` : ''}. The app's guidance so far: ${[g.short, g.what, g.where, g.unit, g.example, g.mistakes].filter(Boolean).join(' ')} (Source: ${entry.source})`;
 
     const send = async () => {
         const q = question.trim() || t('請用簡單的話說明這一格要填什麼、數字去哪裡找。', 'In plain words, what goes in this field and where do I find the number?');
         setBusy(true);
         setError('');
         try {
-            setAnswer(await ai.ask(q, [], context));
+            setAnswer(await ai.ask(`${about}\n\n${q}`, [], scope.page ?? ''));
         } catch (e: any) {
             setError(e?.message ?? String(e));
         } finally {
@@ -89,7 +86,7 @@ const AskAi: React.FC<{ label: string; code?: string; entry: GuideEntry }> = ({ 
             <p className="mt-1 text-[0.6875rem] text-slate-500">
                 {t('只會送出這一格的名稱、說明和你的問題，不會送出你填的數字。', 'Only this field’s name, its guidance and your question are sent, never the values you entered.')}
             </p>
-            {busy && <p className="mt-2 text-xs text-slate-500">{t('AI 思考中…', 'Thinking…')}</p>}
+            {busy && <p className="mt-2 text-xs text-slate-500">{t('AI 思考中…（Gemini 忙的時候可能要等一分鐘）', 'Thinking… (this can take a minute when Gemini is busy)')}</p>}
             {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
             {answer && !busy && (
                 <div className="mt-2 rounded-lg bg-white/80 p-3 text-[0.8125rem] leading-relaxed text-slate-800" aria-live="polite">
